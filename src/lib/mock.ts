@@ -1,0 +1,75 @@
+import type { RouteSummary, EventSummary } from "@/lib/types";
+
+export const MOCK_ROUTES: RouteSummary[] = [
+  {
+    id: "m1",
+    title: "Salda Gölü Çevre Turu",
+    province: "Burdur · Yeşilova",
+    routeType: "yol",
+    difficulty: "kolay",
+    distanceM: 34000,
+    elevationGainM: 320,
+    durationMin: 125,
+    likesCount: 312,
+  },
+  {
+    id: "m2",
+    title: "Köprülü Kanyon MTB Hattı",
+    province: "Antalya · Manavgat",
+    routeType: "mtb",
+    difficulty: "zor",
+    distanceM: 27000,
+    elevationGainM: 980,
+    durationMin: 160,
+    likesCount: 489,
+  },
+  {
+    id: "m3",
+    title: "Karadeniz Sahil Moto Turu",
+    province: "Trabzon → Rize",
+    routeType: "moto",
+    difficulty: "orta",
+    distanceM: 142000,
+    elevationGainM: 610,
+    durationMin: 175,
+    likesCount: 726,
+  },
+  {
+    id: "m4",
+    title: "Kaçkar Kamp & Keşif Rotası",
+    province: "Rize · Ayder",
+    routeType: "kamp",
+    difficulty: "uzman",
+    distanceM: 61000,
+    elevationGainM: 2140,
+    durationMin: 2880,
+    likesCount: 934,
+  },
+];
+
+export const MOCK_EVENTS: EventSummary[] = [
+  {
+    id: "e1",
+    title: "Pazar Sabahı Boğaz Turu",
+    eventType: "yol",
+    location: "İstanbul · Bebek · 07:30",
+    startsAt: "2026-07-06T07:30:00+03:00",
+    attendeeCount: 41,
+  },
+  {
+    id: "e2",
+    title: "Kapadokya Gün Doğumu Sürüşü",
+    eventType: "moto",
+    location: "Nevşehir · Göreme · 05:00",
+    startsAt: "2026-07-12T05:00:00+03:00",
+    attendeeCount: 27,
+  },
+  {
+    id: "e3",
+    title: "Uludağ Kamp & Keşif Hafta Sonu",
+    eventType: "kamp",
+    location: "Bursa · Sarıalan · Cmt 09:00",
+    startsAt: "2026-07-19T09:00:00+03:00",
+    attendeeCount: 18,
+  },
+];
