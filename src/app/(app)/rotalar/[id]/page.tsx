@@ -7,7 +7,44 @@ import { RouteTypeIcon, PinIcon } from "@/components/home/icons";
 import { RouteDetailMap } from "@/components/routes/route-detail-map";
 import { ElevationChart } from "@/components/routes/elevation-chart";
 import { LikeSaveButtons } from "@/components/routes/like-save-buttons";
+import { ShareButton } from "@/components/routes/share-button";
 import { Comments } from "@/components/routes/comments";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("routes")
+    .select("title, province, distance_m, elevation_gain_m, thumbnail_url")
+    .eq("id", id)
+    .maybeSingle<{
+      title: string;
+      province: string;
+      distance_m: number;
+      elevation_gain_m: number;
+      thumbnail_url: string | null;
+    }>();
+
+  if (!data) return { title: "Rota — RideWithIbrahim" };
+
+  const desc = `${data.province} · ${km(data.distance_m)} km · ↑ ${data.elevation_gain_m.toLocaleString(
+    "tr-TR",
+  )} m tırmanış. RideWithIbrahim'de keşfet.`;
+
+  return {
+    title: `${data.title} — RideWithIbrahim`,
+    description: desc,
+    openGraph: {
+      title: data.title,
+      description: desc,
+      ...(data.thumbnail_url ? { images: [{ url: data.thumbnail_url }] } : {}),
+    },
+  };
+}
 
 type GeoLine = { type: "LineString"; coordinates: [number, number][] };
 
@@ -171,6 +208,10 @@ export default async function RouteDetailPage({
               Başlangıca navigasyon
             </a>
           )}
+          <ShareButton
+            title={route.title}
+            text={`${route.title} — ${route.province} · ${km(route.distance_m)} km 🚴`}
+          />
           {route.gpx_url && (
             <a className="gpx-download" href={route.gpx_url} download>
               ↓ GPX dosyasını indir
