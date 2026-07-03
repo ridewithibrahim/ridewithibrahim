@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import type mapboxglType from "mapbox-gl";
 import type { Map as MbMap, Marker, Popup } from "mapbox-gl";
 import type { MapRoute } from "@/lib/map-data";
@@ -153,11 +154,13 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
     map.fitBounds(bounds, { padding: 120, maxZoom: 11, duration: 800 });
 
     const d = DIFFICULTY[r.difficulty];
+    const nav = `https://www.google.com/maps/dir/?api=1&destination=${r.coords[0][1]},${r.coords[0][0]}`;
     popupRef.current = new gl.Popup({ offset: 26 })
       .setLngLat(r.coords[Math.floor(r.coords.length / 2)])
       .setHTML(
         `<div class="pop"><h4>${r.title}</h4><div class="ploc">${r.province} · ${d.label}</div>
-        <div class="pstats"><span><b>${km(r.distanceM)}</b> km</span><span>↑<b>${r.elevationGainM.toLocaleString("tr-TR")}</b> m</span><span><b>${formatDuration(r.durationMin)}</b></span></div></div>`,
+        <div class="pstats"><span><b>${km(r.distanceM)}</b> km</span><span>↑<b>${r.elevationGainM.toLocaleString("tr-TR")}</b> m</span><span><b>${formatDuration(r.durationMin)}</b></span></div>
+        <div class="pop-actions"><a href="/rotalar/${r.id}">Detay →</a><a href="${nav}" target="_blank" rel="noopener noreferrer">Navigasyon ⌖</a></div></div>`,
       )
       .addTo(map);
   }, [selected, ready, routes]);
@@ -190,6 +193,7 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
         ) : (
           filtered.map((r) => {
             const d = DIFFICULTY[r.difficulty];
+            const nav = `https://www.google.com/maps/dir/?api=1&destination=${r.coords[0][1]},${r.coords[0][0]}`;
             return (
               <div key={r.id} className={`lroute${selected === r.id ? " sel" : ""}`} onClick={() => setSelected((cur) => (cur === r.id ? null : r.id))}>
                 <div className="bar" style={{ background: d.color }} />
@@ -206,6 +210,32 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
                     <span><b>{formatDuration(r.durationMin)}</b></span>
                     <span>♥ {r.likes}</span>
                   </div>
+                </div>
+                <div className="lroute-actions">
+                  <a
+                    className="lr-btn"
+                    href={nav}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Google navigasyon"
+                    title="Navigasyonu başlat"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 2L4.5 20.3a.5.5 0 00.65.65L12 18l6.85 2.95a.5.5 0 00.65-.65L12 2z" />
+                    </svg>
+                  </a>
+                  <Link
+                    className="lr-btn"
+                    href={`/rotalar/${r.id}`}
+                    aria-label="Rota detayı"
+                    title="Detaya git"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14M13 6l6 6-6 6" />
+                    </svg>
+                  </Link>
                 </div>
               </div>
             );

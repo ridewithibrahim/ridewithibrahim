@@ -68,7 +68,10 @@ export function Navbar({ username }: { username?: string | null }) {
           <Link key={l.href} href={l.href} onClick={() => setOpen(false)}>{l.label}</Link>
         ))}
         {username ? (
-          <Link href="/ayarlar" onClick={() => setOpen(false)}>Ayarlar</Link>
+          <>
+            <Link href={`/profil/${username}`} onClick={() => setOpen(false)}>Profilim (@{username})</Link>
+            <Link href="/ayarlar" onClick={() => setOpen(false)}>Ayarlar</Link>
+          </>
         ) : (
           <Link href="/login" onClick={() => setOpen(false)}>Giriş yap</Link>
         )}
