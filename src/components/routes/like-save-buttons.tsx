@@ -72,7 +72,7 @@ export function LikeSaveButtons({
       ? await supabase
           .from(table)
           .upsert(
-            { route_id: routeId, user_id: user.id },
+            { route_id: routeId, user_id: user.id } as never,
             { onConflict: "user_id,route_id", ignoreDuplicates: true },
           )
       : await supabase.from(table).delete().eq("route_id", routeId).eq("user_id", user.id);

@@ -52,11 +52,12 @@ export function Comments({
 
     const { data, error: err } = await supabase
       .from("route_comments")
-      .insert({ route_id: routeId, user_id: user.id, content })
+      .insert({ route_id: routeId, user_id: user.id, content } as never)
       .select("id, content, created_at")
       .single();
 
-    if (err || !data) {
+    const row = data as { id: string; content: string; created_at: string } | null;
+    if (err || !row) {
       setError(err?.message ?? "Yorum gönderilemedi.");
       setBusy(false);
       return;
@@ -64,9 +65,9 @@ export function Comments({
 
     setItems([
       {
-        id: data.id,
-        content: data.content,
-        createdAt: data.created_at,
+        id: row.id,
+        content: row.content,
+        createdAt: row.created_at,
         author: currentUsername ?? "sen",
       },
       ...items,

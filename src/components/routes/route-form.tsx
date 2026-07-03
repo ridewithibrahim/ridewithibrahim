@@ -28,7 +28,6 @@ export function RouteForm() {
 
   const mapEl = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MbMap | null>(null);
-  const glRef = useRef<typeof import("mapbox-gl") | null>(null);
 
   const {
     register,
@@ -80,9 +79,8 @@ export function RouteForm() {
     let cancelled = false;
 
     (async () => {
-      const mapboxgl = glRef.current ?? (await import("mapbox-gl")).default;
+      const mapboxgl = (await import("mapbox-gl")).default;
       if (cancelled) return;
-      glRef.current = mapboxgl;
       mapboxgl.accessToken = TOKEN;
 
       const data = {
@@ -155,9 +153,9 @@ export function RouteForm() {
       const { data: pub } = supabase.storage.from("gpx").getPublicUrl(path);
 
       // 2) Rotayı RPC ile kaydet (geometry güvenli şekilde yazılır)
-      const { data: id, error } = await supabase.rpc("create_route", {
+      const routeArgs = {
         p_title: values.title,
-        p_description: values.description || null,
+        p_description: values.description || "",
         p_route_type: values.routeType,
         p_difficulty: values.difficulty,
         p_province: values.province,
@@ -166,7 +164,8 @@ export function RouteForm() {
         p_duration_min: gpx.durationMin,
         p_coords: gpx.coords,
         p_gpx_url: pub.publicUrl,
-      });
+      };
+      const { data: id, error } = await supabase.rpc("create_route", routeArgs as never);
       if (error) throw error;
 
       // 3) Fotoğraf varsa yükle ve rotaya bağla (RLS: sahibi güncelleyebilir)
@@ -178,7 +177,10 @@ export function RouteForm() {
           .upload(photoPath, photo, { contentType: photo.type });
         if (!pErr) {
           const { data: pPub } = supabase.storage.from("route-thumbnails").getPublicUrl(photoPath);
-          await supabase.from("routes").update({ thumbnail_url: pPub.publicUrl }).eq("id", id);
+          await supabase
+            .from("routes")
+            .update({ thumbnail_url: pPub.publicUrl } as never)
+            .eq("id", id);
         }
       }
 

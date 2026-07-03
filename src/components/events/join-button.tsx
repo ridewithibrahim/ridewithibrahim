@@ -50,7 +50,7 @@ export function JoinButton({
       ? await supabase
           .from("event_attendees")
           .upsert(
-            { event_id: eventId, user_id: user.id, status: "gidiyor" },
+            { event_id: eventId, user_id: user.id, status: "gidiyor" } as never,
             { onConflict: "event_id,user_id" },
           )
       : await supabase.from("event_attendees").delete().eq("event_id", eventId).eq("user_id", user.id);

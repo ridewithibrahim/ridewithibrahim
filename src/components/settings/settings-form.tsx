@@ -71,7 +71,7 @@ export function SettingsForm({ initial }: { initial: ProfileInitial }) {
           city: city.trim() || null,
           bio: bio.trim() || null,
           ...(avatar_url ? { avatar_url } : {}),
-        })
+        } as never)
         .eq("id", user.id);
       if (error) throw error;
 

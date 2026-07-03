@@ -34,15 +34,16 @@ export function EventForm() {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Oturum bulunamadı, tekrar giriş yap.");
 
-      const { data: id, error } = await supabase.rpc("create_event", {
+      const eventArgs = {
         p_title: values.title,
-        p_description: values.description || null,
+        p_description: values.description || "",
         p_event_type: values.eventType,
         p_province: values.province,
         p_location: values.location,
         p_starts_at: new Date(values.startsAt).toISOString(),
-        p_capacity: values.capacity ? Number(values.capacity) : null,
-      });
+        p_capacity: values.capacity ? Number(values.capacity) : undefined,
+      };
+      const { data: id, error } = await supabase.rpc("create_event", eventArgs as never);
       if (error) throw error;
 
       router.push(`/bulusmalar/${id}`);

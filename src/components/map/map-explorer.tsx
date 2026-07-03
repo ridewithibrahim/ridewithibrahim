@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import type mapboxglType from "mapbox-gl";
 import type { Map as MbMap, Marker, Popup } from "mapbox-gl";
 import type { MapRoute } from "@/lib/map-data";
 import type { RouteType, Difficulty } from "@/lib/types";
@@ -38,7 +39,7 @@ function toGeoJSON(routes: MapRoute[]) {
 export function MapExplorer({ routes }: { routes: MapRoute[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MbMap | null>(null);
-  const glRef = useRef<typeof import("mapbox-gl") | null>(null);
+  const glRef = useRef<typeof mapboxglType | null>(null);
   const markersRef = useRef<Marker[]>([]);
   const popupRef = useRef<Popup | null>(null);
 
@@ -88,7 +89,8 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
           paint: { "line-color": ["get", "color"], "line-width": 4, "line-opacity": 0.95 },
         });
         map.on("click", "routes-line", (e) => {
-          const id = e.features?.[0]?.properties?.id as string | undefined;
+          const feature = e.features?.[0] as { properties?: { id?: string } } | undefined;
+          const id = feature?.properties?.id;
           if (id) setSelected((cur) => (cur === id ? null : id));
         });
         map.on("mouseenter", "routes-line", () => (map.getCanvas().style.cursor = "pointer"));

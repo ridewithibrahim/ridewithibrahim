@@ -39,7 +39,7 @@ export function SaveButton({
       ? await supabase
           .from("route_saves")
           .upsert(
-            { route_id: routeId, user_id: user.id },
+            { route_id: routeId, user_id: user.id } as never,
             { onConflict: "user_id,route_id", ignoreDuplicates: true },
           )
       : await supabase.from("route_saves").delete().eq("route_id", routeId).eq("user_id", user.id);
