@@ -37,6 +37,17 @@ function toGeoJSON(routes: MapRoute[]) {
   };
 }
 
+/** İki [lng,lat] noktası arası km (haversine). */
+function distKm(a: [number, number], b: [number, number]) {
+  const R = 6371;
+  const dLat = ((b[1] - a[1]) * Math.PI) / 180;
+  const dLng = ((b[0] - a[0]) * Math.PI) / 180;
+  const s =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((a[1] * Math.PI) / 180) * Math.cos((b[1] * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(s));
+}
+
 export function MapExplorer({ routes }: { routes: MapRoute[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MbMap | null>(null);
@@ -49,6 +60,11 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
+  const userMarkerRef = useRef<Marker | null>(null);
+  const [userLoc, setUserLoc] = useState<[number, number] | null>(null);
+  const [locBusy, setLocBusy] = useState(false);
+  const [locError, setLocError] = useState("");
+
   const filtered = useMemo(
     () =>
       routes.filter(
@@ -58,6 +74,51 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
       ),
     [routes, type, diff],
   );
+
+  // Konum açıksa: her rotaya başlangıç noktasına uzaklık ekle ve yakından uzağa sırala.
+  const listRoutes = useMemo<(MapRoute & { distanceKm?: number })[]>(() => {
+    if (!userLoc) return filtered;
+    return filtered
+      .map((r) => ({ ...r, distanceKm: distKm(userLoc, r.coords[0]) }))
+      .sort((a, b) => (a.distanceKm ?? 0) - (b.distanceKm ?? 0));
+  }, [filtered, userLoc]);
+
+  function locateMe() {
+    // Açıkken tekrar basılırsa kapat.
+    if (userLoc) {
+      setUserLoc(null);
+      userMarkerRef.current?.remove();
+      userMarkerRef.current = null;
+      return;
+    }
+    if (!("geolocation" in navigator)) {
+      setLocError("Tarayıcın konum özelliğini desteklemiyor.");
+      return;
+    }
+    setLocBusy(true);
+    setLocError("");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const loc: [number, number] = [pos.coords.longitude, pos.coords.latitude];
+        setUserLoc(loc);
+        setLocBusy(false);
+        const map = mapRef.current;
+        const gl = glRef.current;
+        if (map && gl) {
+          const el = document.createElement("div");
+          el.className = "user-marker";
+          userMarkerRef.current?.remove();
+          userMarkerRef.current = new gl.Marker({ element: el }).setLngLat(loc).addTo(map);
+          map.flyTo({ center: loc, zoom: 9.5, duration: 900 });
+        }
+      },
+      () => {
+        setLocBusy(false);
+        setLocError("Konum alınamadı — tarayıcıdan konum izni vermen gerekiyor.");
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  }
 
   // --- init map once ---
   useEffect(() => {
@@ -185,13 +246,24 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
               </button>
             ))}
           </div>
-          <div className="count"><b>{filtered.length}</b> rota</div>
+          <div className="count-row">
+            <button
+              className={`chip loc-chip${userLoc ? " active" : ""}`}
+              onClick={locateMe}
+              disabled={locBusy}
+              type="button"
+            >
+              {locBusy ? "Konum alınıyor…" : userLoc ? "📍 Yakınımdakiler ✕" : "📍 Konumum"}
+            </button>
+            <div className="count"><b>{listRoutes.length}</b> rota</div>
+          </div>
+          {locError && <div className="loc-err">{locError}</div>}
         </div>
 
-        {filtered.length === 0 ? (
+        {listRoutes.length === 0 ? (
           <div className="empty">Bu filtreye uyan rota yok.<br />Filtreleri sıfırlamayı dene.</div>
         ) : (
-          filtered.map((r) => {
+          listRoutes.map((r) => {
             const d = DIFFICULTY[r.difficulty];
             const nav = `https://www.google.com/maps/dir/?api=1&destination=${r.coords[0][1]},${r.coords[0][0]}`;
             return (
@@ -202,7 +274,12 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
                     <h3>{r.title}</h3>
                     <span className="rtype"><RouteTypeIcon type={r.type} width={15} height={15} /></span>
                   </div>
-                  <div className="loc"><PinIcon width={11} height={11} /> {r.province}</div>
+                  <div className="loc">
+                    <PinIcon width={11} height={11} /> {r.province}
+                    {typeof r.distanceKm === "number" && (
+                      <span className="dist-tag"> · ≈ {r.distanceKm < 1 ? 1 : Math.round(r.distanceKm)} km uzakta</span>
+                    )}
+                  </div>
                   <div className="stats">
                     <span className="diff-tag" style={{ color: d.color, border: `1px solid ${d.color}` }}>{d.label}</span>
                     <span><b>{km(r.distanceM)}</b> km</span>

@@ -631,3 +631,17 @@ em.field-error { font-style: normal; background: none; border: none; padding: 0;
 .pop-actions a { font-size: 12px; font-weight: 700; color: var(--amber); }
 .pop-actions a:last-child { color: var(--spruce); }
 .pop-actions a:hover { text-decoration: underline; }
+
+/* konumum / yakindaki rotalar */
+.count-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.loc-chip { font-weight: 700; }
+.loc-chip:disabled { opacity: .6; cursor: wait; }
+.loc-err { font-size: 12px; color: #ef8d7c; margin-top: 6px; }
+.dist-tag { color: var(--amber); font-weight: 700; }
+.user-marker { width: 16px; height: 16px; border-radius: 50%; background: var(--amber);
+  border: 3px solid rgba(242, 177, 76, .4); animation: locPulse 1.8s infinite; }
+@keyframes locPulse {
+  0% { box-shadow: 0 0 0 0 rgba(242, 177, 76, .45); }
+  70% { box-shadow: 0 0 0 14px rgba(242, 177, 76, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(242, 177, 76, 0); }
+}
