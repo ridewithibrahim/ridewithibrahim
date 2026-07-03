@@ -623,7 +623,7 @@ em.field-error { font-style: normal; background: none; border: none; padding: 0;
 
 /* map list row actions + popup links */
 .lroute { position: relative; }
-.lroute-actions { display: flex; flex-direction: column; gap: 6px; align-self: center; flex: 0 0 auto; margin-left: 4px; }
+.lroute-actions { display: flex; flex-direction: row; gap: 6px; align-self: flex-end; flex: 0 0 auto; margin-left: 4px; }
 .lr-btn { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--line);
   display: grid; place-items: center; color: var(--ink-dim); background: rgba(255,255,255,.02); transition: .15s; }
 .lr-btn:hover { color: var(--amber); border-color: var(--amber); }
