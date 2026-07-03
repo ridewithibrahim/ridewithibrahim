@@ -9,6 +9,7 @@ export interface CommentItem {
   content: string;
   createdAt: string;
   author: string;
+  userId?: string;
 }
 
 const AVATAR_COLORS = ["#F2B14C", "#5FB8A3", "#7FC2E0", "#54B97C", "#E2823F", "#D45D49"];
@@ -18,11 +19,13 @@ export function Comments({
   initial,
   isAuthed,
   currentUsername,
+  currentUserId,
 }: {
   routeId: string;
   initial: CommentItem[];
   isAuthed: boolean;
   currentUsername: string | null;
+  currentUserId?: string | null;
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -69,11 +72,19 @@ export function Comments({
         content: row.content,
         createdAt: row.created_at,
         author: currentUsername ?? "sen",
+        userId: user.id,
       },
       ...items,
     ]);
     setText("");
     setBusy(false);
+  }
+
+  async function removeComment(id: string) {
+    const prev = items;
+    setItems(items.filter((c) => c.id !== id)); // optimistic
+    const { error: err } = await supabase.from("route_comments").delete().eq("id", id);
+    if (err) setItems(prev); // geri al
   }
 
   return (
@@ -115,6 +126,11 @@ export function Comments({
                 <time>
                   {new Date(c.createdAt).toLocaleDateString("tr-TR", { day: "numeric", month: "short" })}
                 </time>
+                {currentUserId && c.userId === currentUserId && (
+                  <button type="button" className="cm-del" aria-label="Yorumu sil" onClick={() => removeComment(c.id)}>
+                    ✕
+                  </button>
+                )}
               </div>
               <p>{c.content}</p>
             </div>

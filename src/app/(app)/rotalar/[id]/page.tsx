@@ -8,6 +8,7 @@ import { RouteDetailMap } from "@/components/routes/route-detail-map";
 import { ElevationChart } from "@/components/routes/elevation-chart";
 import { LikeSaveButtons } from "@/components/routes/like-save-buttons";
 import { ShareButton } from "@/components/routes/share-button";
+import { DeleteRouteButton } from "@/components/routes/delete-route-button";
 import { Comments } from "@/components/routes/comments";
 
 export async function generateMetadata({
@@ -142,6 +143,7 @@ export default async function RouteDetailPage({
     content: c.content,
     createdAt: c.created_at,
     author: commentAuthors.get(c.user_id) ?? "kullanıcı",
+    userId: c.user_id,
   }));
 
   return (
@@ -217,6 +219,11 @@ export default async function RouteDetailPage({
               ↓ GPX dosyasını indir
             </a>
           )}
+          {user?.id === route.user_id && (
+            <span className="owner-actions">
+              <DeleteRouteButton routeId={route.id} />
+            </span>
+          )}
         </div>
 
         {route.description && (
@@ -230,6 +237,7 @@ export default async function RouteDetailPage({
           routeId={route.id}
           initial={comments}
           isAuthed={!!user}
+          currentUserId={user?.id ?? null}
           currentUsername={(user?.user_metadata?.username as string) ?? null}
         />
       </div>
