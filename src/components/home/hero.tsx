@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { MapIcon, PlusIcon, PinIcon } from "./icons";
+import type { SiteStats } from "@/lib/queries";
 
-const STATS = [
-  { num: "12.480", lbl: "Rota" },
-  { num: "3.214", lbl: "Sürücü" },
-  { num: "81", lbl: "İl" },
-  { num: "47", lbl: "Buluşma" },
-];
-
-export function Hero() {
+export function Hero({ stats }: { stats?: SiteStats }) {
+  const items = [
+    { num: (stats?.routes ?? 0).toLocaleString("tr-TR"), lbl: "Rota" },
+    { num: (stats?.riders ?? 0).toLocaleString("tr-TR"), lbl: "Sürücü" },
+    { num: (stats?.totalKm ?? 0).toLocaleString("tr-TR"), lbl: "Toplam km" },
+    { num: (stats?.events ?? 0).toLocaleString("tr-TR"), lbl: "Buluşma" },
+  ];
   return (
     <header className="hero">
       <div className="hero-glow" />
@@ -52,7 +52,7 @@ export function Hero() {
               </Link>
             </div>
             <div className="hero-stats">
-              {STATS.map((s) => (
+              {items.map((s) => (
                 <div className="stat" key={s.lbl}>
                   <div className="num">{s.num}</div>
                   <div className="lbl">{s.lbl}</div>

@@ -40,15 +40,16 @@ export default async function EventDetailPage({
     .from("profiles")
     .select("username")
     .eq("id", ev.host_id)
-    .maybeSingle();
-  const host = (hostRow?.username as string | undefined) ?? undefined;
+    .maybeSingle<{ username: string | null }>();
+  const host = hostRow?.username ?? undefined;
 
   const { data: att } = await supabase
     .from("event_attendees")
     .select("user_id")
     .eq("event_id", id)
-    .eq("status", "gidiyor");
-  const attendeeIds = (att ?? []).map((a) => a.user_id as string);
+    .eq("status", "gidiyor")
+    .returns<{ user_id: string }[]>();
+  const attendeeIds = (att ?? []).map((a) => a.user_id);
   const count = attendeeIds.length;
   const joined = user ? attendeeIds.includes(user.id) : false;
 
@@ -57,8 +58,9 @@ export default async function EventDetailPage({
     const { data: profs } = await supabase
       .from("profiles")
       .select("id, username")
-      .in("id", attendeeIds);
-    attendees = (profs ?? []) as { id: string; username: string }[];
+      .in("id", attendeeIds)
+      .returns<{ id: string; username: string }[]>();
+    attendees = profs ?? [];
   }
 
   const dt = new Date(ev.starts_at);

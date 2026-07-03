@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Archivo, Hanken_Grotesk, Space_Mono } from "next/font/google";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "./globals.css";
@@ -25,6 +25,15 @@ export const metadata: Metadata = {
     "Bisiklet, moto, kamp ve keşif severler için topluluk rotası ve buluşma platformu. Rotanı paylaş, haritada keşfet, buluşmalara katıl.",
   metadataBase: new URL("https://ridewithibrahim.com"),
   openGraph: { type: "website", locale: "tr_TR", siteName: "RideWithIbrahim" },
+  appleWebApp: {
+    capable: true,
+    title: "RideWithIbrahim",
+    statusBarStyle: "black-translucent",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0C1512",
 };
 
 export default function RootLayout({

@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { MOCK_ROUTES, MOCK_EVENTS } from "@/lib/mock";
 import type { RouteSummary, EventSummary, RouteType, Difficulty } from "@/lib/types";
 
 export interface RouteFilters {
@@ -53,9 +52,10 @@ async function enrich(
   const { data: profs } = await supabase
     .from("profiles")
     .select("id, username")
-    .in("id", userIds);
+    .in("id", userIds)
+    .returns<{ id: string; username: string }[]>();
   const authorMap = new Map(
-    (profs ?? []).map((p) => [p.id as string, p.username as string]),
+    (profs ?? []).map((p) => [p.id, p.username]),
   );
 
   // saved (only if logged in)
@@ -68,8 +68,9 @@ async function enrich(
       .from("route_saves")
       .select("route_id")
       .eq("user_id", user.id)
-      .in("route_id", ids);
-    savedSet = new Set((saves ?? []).map((s) => s.route_id as string));
+      .in("route_id", ids)
+      .returns<{ route_id: string }[]>();
+    savedSet = new Set((saves ?? []).map((s) => s.route_id));
   }
 
   return routes.map((r, i) => ({
@@ -130,10 +131,10 @@ export async function getFeaturedRoutes(limit = 4): Promise<RouteSummary[]> {
       .order("likes_count", { ascending: false })
       .limit(limit);
 
-    if (error || !data?.length) return MOCK_ROUTES.slice(0, limit);
+    if (error || !data?.length) return [];
     return enrich(supabase, data as RouteRow[]);
   } catch {
-    return MOCK_ROUTES.slice(0, limit);
+    return [];
   }
 }
 
@@ -166,11 +167,11 @@ async function withAttendeeCounts(
     .in(
       "event_id",
       rows.map((r) => r.id),
-    );
+    )
+    .returns<{ event_id: string }[]>();
   const counts = new Map<string, number>();
   for (const a of data ?? []) {
-    const id = a.event_id as string;
-    counts.set(id, (counts.get(id) ?? 0) + 1);
+    counts.set(a.event_id, (counts.get(a.event_id) ?? 0) + 1);
   }
   return base.map((e) => ({ ...e, attendeeCount: counts.get(e.id) ?? 0 }));
 }
@@ -185,10 +186,43 @@ export async function getUpcomingEvents(limit = 3): Promise<EventSummary[]> {
       .order("starts_at", { ascending: true })
       .limit(limit);
 
-    if (error || !data?.length) return MOCK_EVENTS.slice(0, limit);
+    if (error || !data?.length) return [];
     return withAttendeeCounts(supabase, data as EventRow[]);
   } catch {
-    return MOCK_EVENTS.slice(0, limit);
+    return [];
+  }
+}
+
+export interface SiteStats {
+  routes: number;
+  riders: number;
+  totalKm: number;
+  events: number;
+}
+
+/** Real homepage stats (tiny head-count queries + distance sum via the leaderboard view). */
+export async function getSiteStats(): Promise<SiteStats> {
+  const empty: SiteStats = { routes: 0, riders: 0, totalKm: 0, events: 0 };
+  try {
+    const supabase = await createClient();
+    const [r, p, e, lb] = await Promise.all([
+      supabase.from("routes").select("*", { count: "exact", head: true }),
+      supabase.from("profiles").select("*", { count: "exact", head: true }),
+      supabase.from("events").select("*", { count: "exact", head: true }),
+      supabase.from("alltime_leaderboard").select("total_distance_m"),
+    ]);
+    const totalM = (lb.data ?? []).reduce(
+      (s, row) => s + Number((row as { total_distance_m: number | string }).total_distance_m ?? 0),
+      0,
+    );
+    return {
+      routes: r.count ?? 0,
+      riders: p.count ?? 0,
+      events: e.count ?? 0,
+      totalKm: Math.round(totalM / 1000),
+    };
+  } catch {
+    return empty;
   }
 }
 

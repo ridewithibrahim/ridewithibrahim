@@ -17,11 +17,18 @@ export function UpcomingEvents({ events }: { events: EventSummary[] }) {
           </Link>
         </div>
 
-        <div className="evt-grid">
-          {events.map((e) => (
-            <EventCard key={e.id} event={e} reveal />
-          ))}
-        </div>
+        {events.length === 0 ? (
+          <div className="empty-cta reveal">
+            <p>Yaklaşan buluşma yok.</p>
+            <Link className="btn btn-primary btn-sm" href="/bulusmalar/yeni">İlk buluşmayı sen aç</Link>
+          </div>
+        ) : (
+          <div className="evt-grid">
+            {events.map((e) => (
+              <EventCard key={e.id} event={e} reveal />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

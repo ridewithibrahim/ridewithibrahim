@@ -19,6 +19,9 @@ export function RouteForm() {
   const [gpx, setGpx] = useState<ParsedGpx | null>(null);
   const [fileName, setFileName] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string>("");
+  const [photoError, setPhotoError] = useState<string>("");
   const [parseError, setParseError] = useState<string>("");
   const [submitError, setSubmitError] = useState<string>("");
   const [saving, setSaving] = useState(false);
@@ -53,6 +56,22 @@ export function RouteForm() {
       setGpx(null);
       setParseError(err instanceof Error ? err.message : "GPX işlenemedi.");
     }
+  }
+
+  function onPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    setPhotoError("");
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (!f.type.startsWith("image/")) {
+      setPhotoError("Lütfen bir görsel dosyası seç (JPG, PNG, WebP).");
+      return;
+    }
+    if (f.size > 5 * 1024 * 1024) {
+      setPhotoError("Fotoğraf 5 MB'dan büyük olamaz.");
+      return;
+    }
+    setPhoto(f);
+    setPhotoPreview(URL.createObjectURL(f));
   }
 
   // Mapbox preview of the parsed track
@@ -150,7 +169,20 @@ export function RouteForm() {
       });
       if (error) throw error;
 
-      router.push("/harita");
+      // 3) Fotoğraf varsa yükle ve rotaya bağla (RLS: sahibi güncelleyebilir)
+      if (photo && id) {
+        const ext = photo.name.split(".").pop() || "jpg";
+        const photoPath = `${user.id}/${crypto.randomUUID()}.${ext}`;
+        const { error: pErr } = await supabase.storage
+          .from("route-thumbnails")
+          .upload(photoPath, photo, { contentType: photo.type });
+        if (!pErr) {
+          const { data: pPub } = supabase.storage.from("route-thumbnails").getPublicUrl(photoPath);
+          await supabase.from("routes").update({ thumbnail_url: pPub.publicUrl }).eq("id", id);
+        }
+      }
+
+      router.push(`/rotalar/${id}`);
       router.refresh();
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Kayıt sırasında hata oluştu.");
@@ -193,6 +225,27 @@ export function RouteForm() {
           )}
         </div>
       )}
+
+      {/* Photo (optional) */}
+      <div className="rf-block">
+        <label className="rf-label">Fotoğraf (opsiyonel)</label>
+        <label className="gpx-drop photo-drop">
+          <input type="file" accept="image/*" onChange={onPhoto} hidden />
+          {photoPreview ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={photoPreview} alt="Rota fotoğrafı önizleme" className="photo-preview" />
+          ) : (
+            <>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="9" cy="10" r="1.6" />
+                <path d="M21 15l-4.5-4.5L9 18" />
+              </svg>
+              <span>Rotandan bir kare ekle — kartlarda görünür</span>
+            </>
+          )}
+        </label>
+        {photoError && <p className="field-error">{photoError}</p>}
+      </div>
 
       {/* Details */}
       <div className="rf-block">

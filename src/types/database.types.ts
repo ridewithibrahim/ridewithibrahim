@@ -48,6 +48,13 @@ export type Database = {
             foreignKeyName: "comments_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "alltime_leaderboard"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -85,6 +92,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_attendees_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "alltime_leaderboard"
             referencedColumns: ["id"]
           },
           {
@@ -147,6 +161,13 @@ export type Database = {
           title?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "events_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "alltime_leaderboard"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "events_host_id_fkey"
             columns: ["host_id"]
@@ -450,6 +471,13 @@ export type Database = {
             foreignKeyName: "route_comments_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "alltime_leaderboard"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -490,6 +518,13 @@ export type Database = {
             foreignKeyName: "route_likes_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "alltime_leaderboard"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -524,6 +559,13 @@ export type Database = {
             columns: ["route_id"]
             isOneToOne: false
             referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_saves_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "alltime_leaderboard"
             referencedColumns: ["id"]
           },
           {
@@ -605,6 +647,13 @@ export type Database = {
             foreignKeyName: "routes_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "alltime_leaderboard"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "routes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -640,6 +689,17 @@ export type Database = {
       }
     }
     Views: {
+      alltime_leaderboard: {
+        Row: {
+          avatar_url: string | null
+          id: string | null
+          route_count: number | null
+          total_distance_m: number | null
+          total_likes: number | null
+          username: string | null
+        }
+        Relationships: []
+      }
       weekly_leaderboard: {
         Row: {
           avatar_url: string | null
@@ -652,6 +712,21 @@ export type Database = {
       }
     }
     Functions: {
+      create_event: {
+        Args: {
+          p_capacity?: number
+          p_description: string
+          p_event_type: string
+          p_lat?: number
+          p_lng?: number
+          p_location: string
+          p_province: string
+          p_route_id?: string
+          p_starts_at: string
+          p_title: string
+        }
+        Returns: string
+      }
       create_route: {
         Args: {
           p_coords: Json

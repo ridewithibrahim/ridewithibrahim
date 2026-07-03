@@ -17,11 +17,18 @@ export function FeaturedRoutes({ routes }: { routes: RouteSummary[] }) {
           </Link>
         </div>
 
-        <div className="route-grid">
-          {routes.map((r) => (
-            <RouteCard key={r.id} route={r} reveal />
-          ))}
-        </div>
+        {routes.length === 0 ? (
+          <div className="empty-cta reveal">
+            <p>Henüz rota paylaşılmadı.</p>
+            <Link className="btn btn-primary btn-sm" href="/rotalar/yeni">İlk rotayı sen paylaş</Link>
+          </div>
+        ) : (
+          <div className="route-grid">
+            {routes.map((r) => (
+              <RouteCard key={r.id} route={r} reveal />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

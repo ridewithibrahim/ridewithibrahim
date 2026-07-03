@@ -26,10 +26,32 @@ export function CtaBand() {
   );
 }
 
-const COLS = [
-  { h: "Keşfet", links: ["Rotalar", "Harita", "Buluşmalar", "Liderlik"] },
-  { h: "Topluluk", links: ["Kulüpler", "Rota paylaş", "Etkinlik aç", "Rozetler"] },
-  { h: "Destek", links: ["Yardım", "GPX/KML", "İletişim", "Gizlilik"] },
+const COLS: { h: string; links: { label: string; href: string }[] }[] = [
+  {
+    h: "Keşfet",
+    links: [
+      { label: "Rotalar", href: "/rotalar" },
+      { label: "Harita", href: "/harita" },
+      { label: "Buluşmalar", href: "/bulusmalar" },
+      { label: "Liderlik", href: "/liderlik" },
+    ],
+  },
+  {
+    h: "Topluluk",
+    links: [
+      { label: "Rota paylaş", href: "/rotalar/yeni" },
+      { label: "Buluşma aç", href: "/bulusmalar/yeni" },
+      { label: "Hesap ayarları", href: "/ayarlar" },
+    ],
+  },
+  {
+    h: "Destek",
+    links: [
+      { label: "İletişim", href: "/iletisim" },
+      { label: "Gizlilik", href: "/gizlilik" },
+      { label: "Kullanım Şartları", href: "/sartlar" },
+    ],
+  },
 ];
 
 export function Footer() {
@@ -53,7 +75,7 @@ export function Footer() {
             <div className="ft-col" key={c.h}>
               <h4>{c.h}</h4>
               {c.links.map((l) => (
-                <Link key={l} href="#">{l}</Link>
+                <Link key={l.label} href={l.href}>{l.label}</Link>
               ))}
             </div>
           ))}

@@ -1,4 +1,26 @@
 -- ============================================================
+-- TEMİZ KURULUM — RideWithIbrahim
+-- DİKKAT: Aşağıdaki tablolar (profiles, routes, events vb.) VARSA
+-- silinir ve içindeki veriler gider. Yeni/boş projede sorun değil.
+-- auth.users (kullanıcı hesapların) bu işlemden ETKİLENMEZ.
+-- ============================================================
+
+drop view     if exists public.weekly_leaderboard cascade;
+drop table    if exists public.event_attendees   cascade;
+drop table    if exists public.events            cascade;
+drop table    if exists public.comments          cascade;
+drop table    if exists public.route_saves       cascade;
+drop table    if exists public.route_likes       cascade;
+drop table    if exists public.routes            cascade;
+drop table    if exists public.profiles          cascade;
+drop function if exists public.routes_nearby      cascade;
+drop function if exists public.bump_route_counter cascade;
+drop function if exists public.handle_new_user    cascade;
+drop type     if exists public.rsvp_status cascade;
+drop type     if exists public.difficulty  cascade;
+drop type     if exists public.route_type  cascade;
+
+-- ============================================================
 -- RideWithIbrahim — initial schema
 -- Run in Supabase SQL Editor (or `supabase db push`).
 -- PostGIS can also be enabled from Dashboard → Database → Extensions.

@@ -78,8 +78,9 @@ export function RoutesExplorer() {
         const { data: profs } = await supabase
           .from("profiles")
           .select("id, username")
-          .in("id", userIds);
-        const authorMap = new Map((profs ?? []).map((p) => [p.id as string, p.username as string]));
+          .in("id", userIds)
+          .returns<{ id: string; username: string }[]>();
+        const authorMap = new Map((profs ?? []).map((p) => [p.id, p.username]));
         routes = routes.map((r, i) => ({ ...r, authorUsername: authorMap.get(rows[i].user_id) }));
       }
 
@@ -95,8 +96,9 @@ export function RoutesExplorer() {
           .in(
             "route_id",
             routes.map((r) => r.id),
-          );
-        const set = new Set((saves ?? []).map((s) => s.route_id as string));
+          )
+          .returns<{ route_id: string }[]>();
+        const set = new Set((saves ?? []).map((s) => s.route_id));
         routes = routes.map((r) => ({ ...r, saved: set.has(r.id) }));
       }
 

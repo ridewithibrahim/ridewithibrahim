@@ -59,7 +59,12 @@ export default async function ProfilePage({
     <main className="profile">
       <div className="wrap" style={{ maxWidth: 960 }}>
         <header className="pf-head">
-          <span className="pf-avatar">{username[0]?.toUpperCase() ?? "?"}</span>
+          {profile.avatar_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={profile.avatar_url} alt="" className="pf-avatar-img" />
+          ) : (
+            <span className="pf-avatar">{username[0]?.toUpperCase() ?? "?"}</span>
+          )}
           <div className="pf-id">
             <h1>@{username}</h1>
             {profile.full_name && <p className="pf-name">{profile.full_name}</p>}
@@ -69,9 +74,12 @@ export default async function ProfilePage({
             </div>
           </div>
           {isOwn && (
-            <Link className="btn btn-primary btn-sm pf-cta" href="/rotalar/yeni">
-              <PlusIcon width={16} height={16} /> Rota paylaş
-            </Link>
+            <div className="pf-actions">
+              <Link className="btn btn-ghost btn-sm" href="/ayarlar">Ayarlar</Link>
+              <Link className="btn btn-primary btn-sm" href="/rotalar/yeni">
+                <PlusIcon width={16} height={16} /> Rota paylaş
+              </Link>
+            </div>
           )}
         </header>
 

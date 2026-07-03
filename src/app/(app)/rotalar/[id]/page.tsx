@@ -24,6 +24,7 @@ type RouteRow = {
   duration_min: number;
   path: GeoLine | null;
   gpx_url: string | null;
+  thumbnail_url: string | null;
   likes_count: number;
   saves_count: number;
 };
@@ -60,7 +61,7 @@ export default async function RouteDetailPage({
       .from("profiles")
       .select("username")
       .eq("id", route.user_id)
-      .maybeSingle();
+      .maybeSingle<{ username: string | null }>();
     author = prof?.username ?? undefined;
   }
 
@@ -76,22 +77,35 @@ export default async function RouteDetailPage({
     saved = !!s;
   }
 
-  // comments (embed author if the FK exists, otherwise plain)
-  let commentsRes = await supabase
+  // comments (no-join pattern: fetch rows, then author usernames)
+  type CommentRowDb = { id: string; content: string; created_at: string; user_id: string };
+  type ProfileMini = { id: string; username: string };
+
+  const { data: rawComments } = await supabase
     .from("route_comments")
-    .select("*, profiles(username, avatar_url)")
+    .select("id, content, created_at, user_id")
     .eq("route_id", id)
     .order("created_at", { ascending: false })
-    .limit(100);
-  if (commentsRes.error) {
-    commentsRes = await supabase
-      .from("route_comments")
-      .select("*")
-      .eq("route_id", id)
-      .order("created_at", { ascending: false })
-      .limit(100);
+    .limit(100)
+    .returns<CommentRowDb[]>();
+  const cRows: CommentRowDb[] = rawComments ?? [];
+
+  let commentAuthors = new Map<string, string>();
+  if (cRows.length) {
+    const uids = [...new Set(cRows.map((c) => c.user_id))];
+    const { data: cp } = await supabase
+      .from("profiles")
+      .select("id, username")
+      .in("id", uids)
+      .returns<ProfileMini[]>();
+    commentAuthors = new Map((cp ?? []).map((p) => [p.id, p.username]));
   }
-  const comments = commentsRes.data ?? [];
+  const comments = cRows.map((c) => ({
+    id: c.id,
+    content: c.content,
+    createdAt: c.created_at,
+    author: commentAuthors.get(c.user_id) ?? "kullanıcı",
+  }));
 
   return (
     <main className="detail">
@@ -132,15 +146,37 @@ export default async function RouteDetailPage({
           <div><span>Beğeni</span><b>{route.likes_count}</b></div>
         </div>
 
+        {route.thumbnail_url && (
+          <div className="detail-photo">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={route.thumbnail_url} alt={route.title} />
+          </div>
+        )}
+
         <RouteDetailMap coords={coords} color={diff.color} />
 
         <ElevationChart gpxUrl={route.gpx_url} />
 
-        {route.gpx_url && (
-          <a className="gpx-download" href={route.gpx_url} download>
-            ↓ GPX dosyasını indir
-          </a>
-        )}
+        <div className="detail-actions">
+          {coords.length > 0 && (
+            <a
+              className="btn btn-primary btn-sm"
+              href={`https://www.google.com/maps/dir/?api=1&destination=${coords[0][1]},${coords[0][0]}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2L4.5 20.3a.5.5 0 00.65.65L12 18l6.85 2.95a.5.5 0 00.65-.65L12 2z" />
+              </svg>
+              Başlangıca navigasyon
+            </a>
+          )}
+          {route.gpx_url && (
+            <a className="gpx-download" href={route.gpx_url} download>
+              ↓ GPX dosyasını indir
+            </a>
+          )}
+        </div>
 
         {route.description && (
           <div className="detail-desc">
