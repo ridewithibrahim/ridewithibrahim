@@ -4,6 +4,37 @@ import { createClient } from "@/lib/supabase/server";
 import { ROUTE_TYPES } from "@/lib/types";
 import { PinIcon, RouteTypeIcon } from "@/components/home/icons";
 import { JoinButton } from "@/components/events/join-button";
+import { ShareButton } from "@/components/routes/share-button";
+import { DeleteEventButton } from "@/components/events/delete-event-button";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("events")
+    .select("title, province, location, starts_at")
+    .eq("id", id)
+    .maybeSingle<{ title: string; province: string; location: string; starts_at: string }>();
+
+  if (!data) return { title: "Buluşma — RideWithIbrahim" };
+
+  const when = new Date(data.starts_at).toLocaleDateString("tr-TR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+  const desc = `${when} · ${data.location}, ${data.province}. RideWithIbrahim buluşması — sen de katıl!`;
+
+  return {
+    title: `${data.title} — RideWithIbrahim`,
+    description: desc,
+    openGraph: { title: data.title, description: desc },
+  };
+}
 
 type EventShape = {
   id: string;
@@ -106,9 +137,20 @@ export default async function EventDetailPage({
           <div><span>Katılımcı</span><b className="amber">{count}{ev.capacity ? ` / ${ev.capacity}` : ""}</b></div>
         </div>
 
-        {ev.route_id && (
-          <Link className="gpx-download" href={`/rotalar/${ev.route_id}`}>→ İlişkili rotayı gör</Link>
-        )}
+        <div className="detail-actions">
+          <ShareButton
+            title={ev.title}
+            text={`${ev.title} — ${dateStr} · ${ev.location} 🚴 Sen de katıl!`}
+          />
+          {ev.route_id && (
+            <Link className="gpx-download" href={`/rotalar/${ev.route_id}`}>→ İlişkili rotayı gör</Link>
+          )}
+          {user?.id === ev.host_id && (
+            <span className="owner-actions">
+              <DeleteEventButton eventId={ev.id} />
+            </span>
+          )}
+        </div>
 
         {ev.description && (
           <div className="detail-desc">
