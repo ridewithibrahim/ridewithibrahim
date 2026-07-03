@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,16 +9,33 @@ import { createClient } from "@/lib/supabase/client";
 import { parseGpx, type ParsedGpx } from "@/lib/gpx";
 import { routeFormSchema, type RouteFormValues } from "@/lib/validations/route";
 import { ROUTE_TYPES, DIFFICULTY, km, formatDuration } from "@/lib/types";
+import { RouteDrawMap } from "@/components/routes/route-draw-map";
 
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 const TYPES = ["yol", "mtb", "moto", "kamp"] as const;
 const DIFFS = ["kolay", "orta", "zor", "uzman"] as const;
+
+// Çizilen rotalarda süre tahmini için ortalama hızlar (km/sa)
+const SPEED_KMH: Record<(typeof TYPES)[number], number> = { yol: 24, mtb: 14, moto: 55, kamp: 5 };
+
+function havKm(a: [number, number], b: [number, number]) {
+  const R = 6371;
+  const dLat = ((b[1] - a[1]) * Math.PI) / 180;
+  const dLng = ((b[0] - a[0]) * Math.PI) / 180;
+  const s =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((a[1] * Math.PI) / 180) * Math.cos((b[1] * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(s));
+}
 
 export function RouteForm() {
   const router = useRouter();
   const [gpx, setGpx] = useState<ParsedGpx | null>(null);
   const [fileName, setFileName] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
+  const [mode, setMode] = useState<"gpx" | "draw">("gpx");
+  const [drawn, setDrawn] = useState<[number, number][]>([]);
+  const [drawElev, setDrawElev] = useState<string>("");
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>("");
   const [photoError, setPhotoError] = useState<string>("");
@@ -130,10 +147,20 @@ export function RouteForm() {
 
   useEffect(() => () => mapRef.current?.remove(), []);
 
+  const drawDistM = useMemo(() => {
+    let s = 0;
+    for (let i = 1; i < drawn.length; i++) s += havKm(drawn[i - 1], drawn[i]);
+    return Math.round(s * 1000);
+  }, [drawn]);
+
   async function onSubmit(values: RouteFormValues) {
     setSubmitError("");
-    if (!gpx || !file) {
+    if (mode === "gpx" && (!gpx || !file)) {
       setSubmitError("Önce bir GPX dosyası yükle.");
+      return;
+    }
+    if (mode === "draw" && drawn.length < 2) {
+      setSubmitError("Haritaya tıklayarak en az 2 nokta ekle.");
       return;
     }
     setSaving(true);
@@ -144,13 +171,33 @@ export function RouteForm() {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Oturum bulunamadı, tekrar giriş yap.");
 
-      // 1) GPX'i Storage'a yükle
-      const path = `${user.id}/${crypto.randomUUID()}.gpx`;
-      const { error: upErr } = await supabase.storage
-        .from("gpx")
-        .upload(path, file, { contentType: "application/gpx+xml", upsert: false });
-      if (upErr) throw upErr;
-      const { data: pub } = supabase.storage.from("gpx").getPublicUrl(path);
+      // 1) Rota verisini kaynağına göre hazırla
+      let gpxUrl = "";
+      let coords: [number, number][];
+      let distanceM: number;
+      let elevationM: number;
+      let durationMin: number;
+
+      if (mode === "gpx" && gpx && file) {
+        // GPX'i Storage'a yükle
+        const path = `${user.id}/${crypto.randomUUID()}.gpx`;
+        const { error: upErr } = await supabase.storage
+          .from("gpx")
+          .upload(path, file, { contentType: "application/gpx+xml", upsert: false });
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from("gpx").getPublicUrl(path);
+        gpxUrl = pub.publicUrl;
+        coords = gpx.coords;
+        distanceM = gpx.distanceM;
+        elevationM = gpx.elevationGainM;
+        durationMin = gpx.durationMin;
+      } else {
+        // Haritada çizilen rota
+        coords = drawn;
+        distanceM = drawDistM;
+        elevationM = Math.max(0, Math.round(Number(drawElev) || 0));
+        durationMin = Math.max(1, Math.round((distanceM / 1000 / SPEED_KMH[values.routeType]) * 60));
+      }
 
       // 2) Rotayı RPC ile kaydet (geometry güvenli şekilde yazılır)
       const routeArgs = {
@@ -159,11 +206,11 @@ export function RouteForm() {
         p_route_type: values.routeType,
         p_difficulty: values.difficulty,
         p_province: values.province,
-        p_distance_m: gpx.distanceM,
-        p_elevation_gain_m: gpx.elevationGainM,
-        p_duration_min: gpx.durationMin,
-        p_coords: gpx.coords,
-        p_gpx_url: pub.publicUrl,
+        p_distance_m: distanceM,
+        p_elevation_gain_m: elevationM,
+        p_duration_min: durationMin,
+        p_coords: coords,
+        p_gpx_url: gpxUrl,
       };
       const { data: id, error } = await supabase.rpc("create_route", routeArgs as never);
       if (error) throw error;
@@ -194,37 +241,85 @@ export function RouteForm() {
 
   return (
     <form className="rf" onSubmit={handleSubmit(onSubmit)}>
-      {/* GPX upload */}
+      {/* Rota kaynağı seçimi */}
       <div className="rf-block">
-        <label className="rf-label">GPX dosyası</label>
-        <label className="gpx-drop">
-          <input type="file" accept=".gpx,application/gpx+xml,application/xml" onChange={onFile} hidden />
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 15V3M7 8l5-5 5 5" /><path d="M5 15v4a2 2 0 002 2h10a2 2 0 002-2v-4" />
-          </svg>
-          <span>{fileName || "GPX dosyanı seç veya buraya sürükle"}</span>
-        </label>
-        {parseError && <p className="field-error">{parseError}</p>}
-
-        {gpx && (
-          <div className="gpx-stats">
-            <div><span>Mesafe</span><b>{km(gpx.distanceM)} km</b></div>
-            <div><span>İrtifa</span><b>↑ {gpx.elevationGainM.toLocaleString("tr-TR")} m</b></div>
-            <div><span>Süre</span><b>{gpx.durationMin ? formatDuration(gpx.durationMin) : "—"}</b></div>
-            <div><span>Nokta</span><b>{gpx.coords.length}</b></div>
-          </div>
-        )}
+        <label className="rf-label">Rota kaynağı</label>
+        <div className="chips">
+          <button type="button" className={`chip${mode === "gpx" ? " active" : ""}`} onClick={() => setMode("gpx")}>
+            GPX dosyası yükle
+          </button>
+          <button type="button" className={`chip${mode === "draw" ? " active" : ""}`} onClick={() => setMode("draw")}>
+            🖊 Haritada çiz
+          </button>
+        </div>
       </div>
 
-      {/* Map preview */}
-      {gpx && (
-        <div className="rf-block">
-          <label className="rf-label">Önizleme</label>
-          {TOKEN ? (
-            <div className="rf-map" ref={mapEl} />
-          ) : (
-            <p className="rf-hint">Harita önizlemesi için Mapbox token gerekli.</p>
+      {mode === "gpx" ? (
+        <>
+          {/* GPX upload */}
+          <div className="rf-block">
+            <label className="rf-label">GPX dosyası</label>
+            <label className="gpx-drop">
+              <input type="file" accept=".gpx,application/gpx+xml,application/xml" onChange={onFile} hidden />
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 15V3M7 8l5-5 5 5" /><path d="M5 15v4a2 2 0 002 2h10a2 2 0 002-2v-4" />
+              </svg>
+              <span>{fileName || "GPX dosyanı seç veya buraya sürükle"}</span>
+            </label>
+            {parseError && <p className="field-error">{parseError}</p>}
+
+            {gpx && (
+              <div className="gpx-stats">
+                <div><span>Mesafe</span><b>{km(gpx.distanceM)} km</b></div>
+                <div><span>İrtifa</span><b>↑ {gpx.elevationGainM.toLocaleString("tr-TR")} m</b></div>
+                <div><span>Süre</span><b>{gpx.durationMin ? formatDuration(gpx.durationMin) : "—"}</b></div>
+                <div><span>Nokta</span><b>{gpx.coords.length}</b></div>
+              </div>
+            )}
+          </div>
+
+          {/* Map preview */}
+          {gpx && (
+            <div className="rf-block">
+              <label className="rf-label">Önizleme</label>
+              {TOKEN ? (
+                <div className="rf-map" ref={mapEl} />
+              ) : (
+                <p className="rf-hint">Harita önizlemesi için Mapbox token gerekli.</p>
+              )}
+            </div>
           )}
+        </>
+      ) : (
+        <div className="rf-block">
+          <label className="rf-label">Rotanı çiz — haritaya tıklayarak nokta ekle</label>
+          {TOKEN ? (
+            <RouteDrawMap points={drawn} onAdd={(p) => setDrawn((d) => [...d, p])} />
+          ) : (
+            <p className="rf-hint">Harita için Mapbox token gerekli.</p>
+          )}
+          <div className="draw-tools">
+            <button type="button" className="chip" onClick={() => setDrawn((d) => d.slice(0, -1))} disabled={!drawn.length}>
+              ↶ Geri al
+            </button>
+            <button type="button" className="chip" onClick={() => setDrawn([])} disabled={!drawn.length}>
+              Temizle
+            </button>
+            <span className="draw-stat">
+              <b>{km(drawDistM)}</b> km · {drawn.length} nokta
+            </span>
+          </div>
+          <label className="field" style={{ marginTop: 12 }}>
+            <span>Toplam tırmanış (metre, opsiyonel)</span>
+            <input
+              type="number"
+              min={0}
+              placeholder="0"
+              value={drawElev}
+              onChange={(e) => setDrawElev(e.target.value)}
+            />
+          </label>
+          <p className="rf-hint">Süre, rota türüne ve mesafeye göre otomatik tahmin edilir.</p>
         </div>
       )}
 
