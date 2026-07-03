@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type mapboxglType from "mapbox-gl";
-import type { Map as MbMap } from "mapbox-gl";
+import type { Map as MbMap, Marker } from "mapbox-gl";
 
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -17,9 +17,13 @@ export function RouteDrawMap({
   const mapEl = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MbMap | null>(null);
   const glRef = useRef<typeof mapboxglType | null>(null);
+  const locMarkerRef = useRef<Marker | null>(null);
   const readyRef = useRef(false);
   const onAddRef = useRef(onAdd);
   onAddRef.current = onAdd;
+
+  const [locBusy, setLocBusy] = useState(false);
+  const [locErr, setLocErr] = useState("");
 
   // Haritayı bir kez kur
   useEffect(() => {
@@ -106,5 +110,43 @@ export function RouteDrawMap({
     });
   }, [points]);
 
-  return <div ref={mapEl} className="rf-map draw-map" />;
+  // Konumuma uç — çizime kendi mahallenden başla
+  function locate() {
+    if (!("geolocation" in navigator)) {
+      setLocErr("Tarayıcın konum özelliğini desteklemiyor.");
+      return;
+    }
+    setLocBusy(true);
+    setLocErr("");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocBusy(false);
+        const map = mapRef.current;
+        const gl = glRef.current;
+        if (!map || !gl) return;
+        const loc: [number, number] = [pos.coords.longitude, pos.coords.latitude];
+        const el = document.createElement("div");
+        el.className = "user-marker";
+        el.style.pointerEvents = "none"; // tıklamalar haritaya geçsin, çizimi engellemesin
+        locMarkerRef.current?.remove();
+        locMarkerRef.current = new gl.Marker({ element: el }).setLngLat(loc).addTo(map);
+        map.flyTo({ center: loc, zoom: 13.5, duration: 900 });
+      },
+      () => {
+        setLocBusy(false);
+        setLocErr("Konum alınamadı — tarayıcıdan konum izni vermen gerekiyor.");
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  }
+
+  return (
+    <div className="draw-wrap">
+      <div ref={mapEl} className="rf-map draw-map" />
+      <button type="button" className="draw-loc-btn" onClick={locate} disabled={locBusy}>
+        {locBusy ? "Konum alınıyor…" : "📍 Konumum"}
+      </button>
+      {locErr && <span className="draw-loc-err">{locErr}</span>}
+    </div>
+  );
 }
