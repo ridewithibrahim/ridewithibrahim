@@ -122,6 +122,36 @@ export async function getUserRoutes(userId: string): Promise<RouteSummary[]> {
   }
 }
 
+/** Kullanıcının kaydettiği rotalar (en yeni kaydettiği üstte). */
+export async function getSavedRoutes(userId: string): Promise<RouteSummary[]> {
+  try {
+    const supabase = await createClient();
+    const { data: saves } = await supabase
+      .from("route_saves")
+      .select("route_id, created_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(500)
+      .returns<{ route_id: string; created_at: string }[]>();
+
+    const ids = (saves ?? []).map((s) => s.route_id);
+    if (!ids.length) return [];
+
+    const { data, error } = await supabase
+      .from("routes")
+      .select(ROUTE_COLS)
+      .in("id", ids);
+    if (error || !data) return [];
+
+    const enriched = await enrich(supabase, data as RouteRow[]);
+    // kaydetme sırasına göre diz
+    const order = new Map(ids.map((id, i) => [id, i]));
+    return enriched.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+  } catch {
+    return [];
+  }
+}
+
 export async function getFeaturedRoutes(limit = 4): Promise<RouteSummary[]> {
   try {
     const supabase = await createClient();

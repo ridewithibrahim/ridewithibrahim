@@ -70,6 +70,7 @@ export function Navbar({ username }: { username?: string | null }) {
         {username ? (
           <>
             <Link href={`/profil/${username}`} onClick={() => setOpen(false)}>Profilim (@{username})</Link>
+            <Link href="/kaydedilenler" onClick={() => setOpen(false)}>Kaydettiklerim</Link>
             <Link href="/ayarlar" onClick={() => setOpen(false)}>Ayarlar</Link>
           </>
         ) : (

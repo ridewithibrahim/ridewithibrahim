@@ -75,6 +75,7 @@ export default async function ProfilePage({
           </div>
           {isOwn && (
             <div className="pf-actions">
+              <Link className="btn btn-ghost btn-sm" href="/kaydedilenler">Kaydettiklerim</Link>
               <Link className="btn btn-ghost btn-sm" href="/ayarlar">Ayarlar</Link>
               <Link className="btn btn-primary btn-sm" href="/rotalar/yeni">
                 <PlusIcon width={16} height={16} /> Rota paylaş
