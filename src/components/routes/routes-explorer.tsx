@@ -37,7 +37,7 @@ export function RoutesExplorer() {
   const [type, setType] = useState<"all" | RouteType>("all");
   const [diff, setDiff] = useState<"all" | Difficulty>("all");
   const [distance, setDistance] = useState<string | null>(null);
-  const [province, setProvince] = useState("");
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     let ok = true;
@@ -114,22 +114,25 @@ export function RoutesExplorer() {
 
   const filtered = useMemo(() => {
     const range = distance ? DISTANCES.find((d) => d.key === distance) : null;
-    const prov = province.trim().toLocaleLowerCase("tr");
+    const q = query.trim().toLocaleLowerCase("tr");
     return all.filter(
       (r) =>
         (type === "all" || r.routeType === type) &&
         (diff === "all" || r.difficulty === diff) &&
         (!range || (r.distanceM >= range.min && (range.max === null || r.distanceM <= range.max))) &&
-        (!prov || r.province.toLocaleLowerCase("tr").includes(prov)),
+        (!q ||
+          r.title.toLocaleLowerCase("tr").includes(q) ||
+          r.province.toLocaleLowerCase("tr").includes(q) ||
+          (r.authorUsername ?? "").toLocaleLowerCase("tr").includes(q)),
     );
-  }, [all, type, diff, distance, province]);
+  }, [all, type, diff, distance, query]);
 
-  const hasFilter = type !== "all" || diff !== "all" || distance !== null || province.trim() !== "";
+  const hasFilter = type !== "all" || diff !== "all" || distance !== null || query.trim() !== "";
   const reset = () => {
     setType("all");
     setDiff("all");
     setDistance(null);
-    setProvince("");
+    setQuery("");
   };
   const toggle = <T,>(cur: T, val: T, set: (v: T) => void, none: T) =>
     set(cur === val ? none : val);
@@ -162,8 +165,8 @@ export function RoutesExplorer() {
           ))}
         </div>
         <div className="fgroup">
-          <span className="lbl">İl</span>
-          <input className="il-input" placeholder="İl ara…" value={province} onChange={(e) => setProvince(e.target.value)} />
+          <span className="lbl">Ara</span>
+          <input className="il-input" placeholder="Rota adı, il veya @kullanıcı…" value={query} onChange={(e) => setQuery(e.target.value)} />
           {hasFilter && (
             <button className="chip clear" onClick={reset}>Temizle ✕</button>
           )}

@@ -5,6 +5,7 @@ import { getUserRoutes } from "@/lib/queries";
 import { RouteCard } from "@/components/home/route-card";
 import { km } from "@/lib/types";
 import { PlusIcon } from "@/components/home/icons";
+import { getRank, getNextRank, computeBadges } from "@/lib/badges";
 
 type ProfileShape = {
   id: string;
@@ -51,6 +52,11 @@ export default async function ProfilePage({
   const totalDistance = routes.reduce((s, r) => s + r.distanceM, 0);
   const totalLikes = routes.reduce((s, r) => s + r.likesCount, 0);
 
+  const totalKm = totalDistance / 1000;
+  const rank = getRank(totalRoutes, totalKm);
+  const badges = computeBadges(routes);
+  const next = getNextRank(totalRoutes, totalKm);
+
   const joined = profile.created_at
     ? new Date(profile.created_at).toLocaleDateString("tr-TR", { month: "long", year: "numeric" })
     : null;
@@ -67,6 +73,9 @@ export default async function ProfilePage({
           )}
           <div className="pf-id">
             <h1>@{username}</h1>
+            <span className="rank-chip" title={`${totalRoutes} rota · ${Math.round(totalKm)} km`}>
+              {rank.emoji} {rank.name}
+            </span>
             {profile.full_name && <p className="pf-name">{profile.full_name}</p>}
             <div className="pf-meta">
               {profile.city && <span>{profile.city}</span>}
@@ -84,10 +93,25 @@ export default async function ProfilePage({
           )}
         </header>
 
+        {isOwn && next && (
+          <p className="rank-next">
+            Sıradaki rütbe: {next.rank.emoji} <b>{next.rank.name}</b> — {next.needRoutes} rota ya da {next.needKm} km kaldı.
+          </p>
+        )}
+
         <div className="pf-stats">
           <div><b>{totalRoutes}</b><span>Rota</span></div>
           <div><b>{km(totalDistance)}</b><span>Toplam km</span></div>
           <div><b>{totalLikes.toLocaleString("tr-TR")}</b><span>Toplam beğeni</span></div>
+        </div>
+
+        <div className="pf-badges">
+          {badges.map((b) => (
+            <div key={b.id} className={`badge${b.earned ? " earned" : ""}`} title={b.desc}>
+              <span className="b-emoji">{b.earned ? b.emoji : "🔒"}</span>
+              <span className="b-label">{b.label}</span>
+            </div>
+          ))}
         </div>
 
         <div className="sec-head" style={{ marginTop: 36, marginBottom: 20 }}>

@@ -686,3 +686,27 @@ em.field-error { font-style: normal; background: none; border: none; padding: 0;
 .contact-card .em { font-size: 26px; line-height: 1; }
 .contact-card b { font-size: 15.5px; color: var(--ink); }
 .contact-card p { font-size: 13px; color: var(--ink-dim); line-height: 1.55; }
+
+/* rutbe rozetleri */
+.rank-chip { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px;
+  padding: 4px 11px; border: 1px solid var(--amber); border-radius: 999px;
+  color: var(--amber); font-size: 12px; font-weight: 700; width: fit-content; }
+.rank-next { margin: 14px 0 0; font-size: 13px; color: var(--ink-dim); }
+.rank-next b { color: var(--amber); }
+.lb-rankbadge { font-size: 14px; margin-left: 2px; }
+
+/* rutbe cipi + rozetler */
+.rank-chip { display: inline-flex; align-items: center; gap: 5px; margin-top: 7px;
+  padding: 4px 11px; border-radius: 999px; border: 1px solid var(--amber);
+  background: rgba(242, 177, 76, .09); color: var(--amber);
+  font-size: 12.5px; font-weight: 700; letter-spacing: .01em; width: fit-content; }
+.pf-badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px; margin-top: 16px; }
+.badge { display: flex; flex-direction: column; align-items: center; gap: 5px; text-align: center;
+  padding: 13px 8px; border-radius: 14px; border: 1px dashed var(--line);
+  opacity: .38; transition: .15s; }
+.badge.earned { opacity: 1; border-style: solid; background: var(--surface); }
+.badge.earned:hover { border-color: var(--amber); transform: translateY(-2px); }
+.badge .b-emoji { font-size: 24px; line-height: 1; }
+.badge .b-label { font-size: 11.5px; font-weight: 700; color: var(--ink-dim); letter-spacing: .02em; }
+.badge.earned .b-label { color: var(--ink); }
