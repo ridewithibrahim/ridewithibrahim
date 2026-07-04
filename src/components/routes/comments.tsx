@@ -20,12 +20,14 @@ export function Comments({
   isAuthed,
   currentUsername,
   currentUserId,
+  isModerator = false,
 }: {
   routeId: string;
   initial: CommentItem[];
   isAuthed: boolean;
   currentUsername: string | null;
   currentUserId?: string | null;
+  isModerator?: boolean;
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -126,7 +128,7 @@ export function Comments({
                 <time>
                   {new Date(c.createdAt).toLocaleDateString("tr-TR", { day: "numeric", month: "short" })}
                 </time>
-                {currentUserId && c.userId === currentUserId && (
+                {currentUserId && (c.userId === currentUserId || isModerator) && (
                   <button type="button" className="cm-del" aria-label="Yorumu sil" onClick={() => removeComment(c.id)}>
                     ✕
                   </button>

@@ -103,6 +103,18 @@ export default async function RouteDetailPage({
     author = prof?.username ?? undefined;
   }
 
+  // moderasyon: mevcut kullanıcı admin mi?
+  let isAdmin = false;
+  if (user) {
+    const { data: me } = await supabase
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", user.id)
+      .maybeSingle<{ is_admin: boolean }>();
+    isAdmin = !!me?.is_admin;
+  }
+  const isOwner = user?.id === route.user_id;
+
   // like/save state for the current user
   let liked = false;
   let saved = false;
@@ -219,9 +231,11 @@ export default async function RouteDetailPage({
               ↓ GPX dosyasını indir
             </a>
           )}
-          {user?.id === route.user_id && (
+          {(isOwner || isAdmin) && (
             <span className="owner-actions">
-              <Link className="btn btn-ghost btn-sm" href={`/rotalar/${route.id}/duzenle`}>Düzenle</Link>
+              {isOwner && (
+                <Link className="btn btn-ghost btn-sm" href={`/rotalar/${route.id}/duzenle`}>Düzenle</Link>
+              )}
               <DeleteRouteButton routeId={route.id} />
             </span>
           )}
@@ -239,6 +253,7 @@ export default async function RouteDetailPage({
           initial={comments}
           isAuthed={!!user}
           currentUserId={user?.id ?? null}
+          isModerator={isAdmin}
           currentUsername={(user?.user_metadata?.username as string) ?? null}
         />
       </div>

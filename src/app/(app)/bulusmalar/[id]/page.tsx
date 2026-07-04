@@ -63,6 +63,16 @@ export default async function EventDetailPage({
     data: { user },
   } = await supabase.auth.getUser();
 
+  let isAdmin = false;
+  if (user) {
+    const { data: me } = await supabase
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", user.id)
+      .maybeSingle<{ is_admin: boolean }>();
+    isAdmin = !!me?.is_admin;
+  }
+
   const { data: row } = await supabase.from("events").select("*").eq("id", id).maybeSingle();
   if (!row) notFound();
   const ev = row as unknown as EventShape;
@@ -145,7 +155,7 @@ export default async function EventDetailPage({
           {ev.route_id && (
             <Link className="gpx-download" href={`/rotalar/${ev.route_id}`}>→ İlişkili rotayı gör</Link>
           )}
-          {user?.id === ev.host_id && (
+          {(user?.id === ev.host_id || isAdmin) && (
             <span className="owner-actions">
               <DeleteEventButton eventId={ev.id} />
             </span>
