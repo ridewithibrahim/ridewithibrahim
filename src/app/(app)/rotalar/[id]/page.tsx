@@ -221,6 +221,7 @@ export default async function RouteDetailPage({
           )}
           {user?.id === route.user_id && (
             <span className="owner-actions">
+              <Link className="btn btn-ghost btn-sm" href={`/rotalar/${route.id}/duzenle`}>Düzenle</Link>
               <DeleteRouteButton routeId={route.id} />
             </span>
           )}
