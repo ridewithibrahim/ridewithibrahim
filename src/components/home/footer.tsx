@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export function CtaBand() {
+export function CtaBand({ authed = false }: { authed?: boolean }) {
   return (
     <section className="sec" style={{ paddingTop: 0 }}>
       <div className="wrap">
@@ -15,11 +15,23 @@ export function CtaBand() {
             </svg>
           </div>
           <h2>Bir sonraki rotan seni bekliyor.</h2>
-          <p>Ücretsiz katıl, ilk rotanı paylaş ve Türkiye&apos;nin en aktif sürüş topluluğunun parçası ol.</p>
-          <div className="actions">
-            <Link className="btn btn-primary" href="/signup">Ücretsiz katıl</Link>
-            <Link className="btn btn-ghost" href="/harita">Önce rotalara bak</Link>
-          </div>
+          {authed ? (
+            <>
+              <p>Bildiğin güzel bir parkur mu var? Paylaş, topluluk keşfetsin.</p>
+              <div className="actions">
+                <Link className="btn btn-primary" href="/rotalar/yeni">Rota paylaş</Link>
+                <Link className="btn btn-ghost" href="/harita">Haritayı aç</Link>
+              </div>
+            </>
+          ) : (
+            <>
+              <p>Ücretsiz katıl, ilk rotanı paylaş ve Türkiye&apos;nin en aktif sürüş topluluğunun parçası ol.</p>
+              <div className="actions">
+                <Link className="btn btn-primary" href="/signup">Ücretsiz katıl</Link>
+                <Link className="btn btn-ghost" href="/harita">Önce rotalara bak</Link>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </section>
