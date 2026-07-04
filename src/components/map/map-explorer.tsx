@@ -8,6 +8,9 @@ import type { MapRoute } from "@/lib/map-data";
 import type { RouteType, Difficulty } from "@/lib/types";
 import { DIFFICULTY, km, formatDuration } from "@/lib/types";
 import { RouteTypeIcon, PinIcon } from "@/components/home/icons";
+import { createClient } from "@/lib/supabase/client";
+
+type CampSpot = { id: string; name: string; lng: number; lat: number; description: string | null };
 
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -60,6 +63,10 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
+  const [camps, setCamps] = useState<CampSpot[] | null>(null);
+  const [showCamps, setShowCamps] = useState(false);
+  const [campsBusy, setCampsBusy] = useState(false);
+
   const userMarkerRef = useRef<Marker | null>(null);
   const [userLoc, setUserLoc] = useState<[number, number] | null>(null);
   const [locBusy, setLocBusy] = useState(false);
@@ -82,6 +89,25 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
       .map((r) => ({ ...r, distanceKm: distKm(userLoc, r.coords[0]) }))
       .sort((a, b) => (a.distanceKm ?? 0) - (b.distanceKm ?? 0));
   }, [filtered, userLoc]);
+
+  async function toggleCamps() {
+    if (showCamps) {
+      setShowCamps(false);
+      return;
+    }
+    if (!camps) {
+      setCampsBusy(true);
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("camp_spots")
+        .select("id, name, lng, lat, description")
+        .limit(1000)
+        .returns<CampSpot[]>();
+      setCamps(data ?? []);
+      setCampsBusy(false);
+    }
+    setShowCamps(true);
+  }
 
   function locateMe() {
     // Açıkken tekrar basılırsa kapat.
@@ -169,6 +195,59 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // --- kamp noktaları katmanı ---
+  useEffect(() => {
+    const map = mapRef.current;
+    const gl = glRef.current;
+    if (!map || !gl || !ready) return;
+
+    if (!map.getSource("camps") && camps) {
+      map.addSource("camps", {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: camps.map((c) => ({
+            type: "Feature",
+            properties: { name: c.name, desc: c.description ?? "", lng: c.lng, lat: c.lat },
+            geometry: { type: "Point", coordinates: [c.lng, c.lat] },
+          })),
+        } as never,
+      });
+      map.addLayer({
+        id: "camps-pts",
+        type: "circle",
+        source: "camps",
+        paint: {
+          "circle-radius": 6,
+          "circle-color": "#5FB8A3",
+          "circle-stroke-width": 2,
+          "circle-stroke-color": "#0C1512",
+        },
+      });
+      map.on("click", "camps-pts", (e) => {
+        const f = e.features?.[0] as { properties?: { name?: string; desc?: string; lng?: number; lat?: number } } | undefined;
+        const pr = f?.properties;
+        if (!pr) return;
+        const nav = `https://www.google.com/maps/dir/?api=1&destination=${pr.lat},${pr.lng}`;
+        const descLine = pr.desc ? String(pr.desc).split("\n")[0] : "";
+        popupRef.current?.remove();
+        popupRef.current = new gl.Popup({ offset: 14 })
+          .setLngLat([Number(pr.lng), Number(pr.lat)])
+          .setHTML(
+            `<div class="pop"><h4>⛺ ${pr.name}</h4>${descLine ? `<div class="ploc">${descLine}</div>` : ""}
+            <div class="pop-actions"><a href="${nav}" target="_blank" rel="noopener noreferrer">Navigasyon ⌖</a></div></div>`,
+          )
+          .addTo(map);
+      });
+      map.on("mouseenter", "camps-pts", () => (map.getCanvas().style.cursor = "pointer"));
+      map.on("mouseleave", "camps-pts", () => (map.getCanvas().style.cursor = ""));
+    }
+
+    if (map.getLayer("camps-pts")) {
+      map.setLayoutProperty("camps-pts", "visibility", showCamps ? "visible" : "none");
+    }
+  }, [camps, showCamps, ready]);
+
   // --- keep map data + markers in sync with filters ---
   useEffect(() => {
     const map = mapRef.current;
@@ -254,6 +333,14 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
               type="button"
             >
               {locBusy ? "Konum alınıyor…" : userLoc ? "📍 Yakınımdakiler ✕" : "📍 Konumum"}
+            </button>
+            <button
+              className={`chip loc-chip${showCamps ? " active" : ""}`}
+              onClick={toggleCamps}
+              disabled={campsBusy}
+              type="button"
+            >
+              {campsBusy ? "Yükleniyor…" : "⛺ Kamp noktaları"}
             </button>
             <div className="count"><b>{listRoutes.length}</b> rota</div>
           </div>
