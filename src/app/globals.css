@@ -779,3 +779,8 @@ button.card-like:disabled { opacity: .7; }
 .chat-input textarea:focus { outline: none; border-color: var(--amber); }
 .chat-blocked { padding: 14px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); text-align: center; }
 .msg-btn-wrap { display: inline-flex; flex-direction: column; gap: 6px; }
+
+/* profil mesaj butonu */
+.msg-btn { gap: 8px; }
+.msg-btn svg { flex: 0 0 auto; }
+.msg-btn-wrap .field-error { max-width: 260px; text-align: right; }
