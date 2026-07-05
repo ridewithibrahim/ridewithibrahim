@@ -16,6 +16,7 @@ const LINKS = [
 export function Navbar({ username, unread = 0 }: { username?: string | null; unread?: number }) {
   const pathname = usePathname();
   const [count, setCount] = useState(unread);
+  const [msgCount, setMsgCount] = useState(0);
 
   // Rozet canlı kalsın: sayfa değiştikçe okunmamış sayısını tazele;
   // bildirimler sayfasına girildiği an rozeti söndür.
@@ -28,11 +29,23 @@ export function Navbar({ username, unread = 0 }: { username?: string | null; unr
     let active = true;
     (async () => {
       const supabase = createClient();
-      const { count: c } = await supabase
-        .from("notifications")
-        .select("id", { count: "exact", head: true })
-        .eq("read", false);
-      if (active) setCount(c ?? 0);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      const [n, m] = await Promise.all([
+        supabase.from("notifications").select("id", { count: "exact", head: true }).eq("read", false),
+        user
+          ? supabase
+              .from("messages")
+              .select("id", { count: "exact", head: true })
+              .eq("read", false)
+              .neq("sender_id", user.id)
+          : Promise.resolve({ count: 0 }),
+      ]);
+      if (active) {
+        setCount(n.count ?? 0);
+        setMsgCount(pathname.startsWith("/mesajlar") ? 0 : (m.count ?? 0));
+      }
     })();
     return () => {
       active = false;
@@ -65,6 +78,12 @@ export function Navbar({ username, unread = 0 }: { username?: string | null; unr
             <>
               <Link className="btn btn-ghost btn-sm" href={`/profil/${username}`}>
                 @{username}
+              </Link>
+              <Link className="nav-gear nav-bell" href="/mesajlar" aria-label="Mesajlar" title="Mesajlar">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+                </svg>
+                {msgCount > 0 && <span className="bell-badge">{msgCount > 9 ? "9+" : msgCount}</span>}
               </Link>
               <Link className="nav-gear nav-bell" href="/bildirimler" aria-label="Bildirimler" title="Bildirimler">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -104,6 +123,9 @@ export function Navbar({ username, unread = 0 }: { username?: string | null; unr
         {username ? (
           <>
             <Link href={`/profil/${username}`} onClick={() => setOpen(false)}>Profilim (@{username})</Link>
+            <Link href="/mesajlar" onClick={() => setOpen(false)}>
+              Mesajlar{msgCount > 0 ? ` (${msgCount > 9 ? "9+" : msgCount})` : ""}
+            </Link>
             <Link href="/bildirimler" onClick={() => setOpen(false)}>
               Bildirimler{count > 0 ? ` (${count > 9 ? "9+" : count})` : ""}
             </Link>

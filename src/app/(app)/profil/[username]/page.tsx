@@ -6,6 +6,7 @@ import { RouteCard } from "@/components/home/route-card";
 import { km } from "@/lib/types";
 import { PlusIcon } from "@/components/home/icons";
 import { getRank, getNextRank, computeBadges } from "@/lib/badges";
+import { MessageButton } from "@/components/messages/message-button";
 
 type ProfileShape = {
   id: string;
@@ -82,6 +83,11 @@ export default async function ProfilePage({
               {joined && <span>{joined}&apos;den beri üye</span>}
             </div>
           </div>
+          {!isOwn && user && (
+            <div className="pf-actions">
+              <MessageButton otherId={profile.id} />
+            </div>
+          )}
           {isOwn && (
             <div className="pf-actions">
               <Link className="btn btn-ghost btn-sm" href="/kaydedilenler">Kaydettiklerim</Link>
