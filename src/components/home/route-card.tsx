@@ -1,8 +1,9 @@
 import Link from "next/link";
 import type { RouteSummary } from "@/lib/types";
 import { DIFFICULTY, km, formatDuration } from "@/lib/types";
-import { PinIcon, HeartIcon, RouteTypeIcon } from "./icons";
+import { PinIcon, RouteTypeIcon } from "./icons";
 import { SaveButton } from "@/components/routes/save-button";
+import { CardLike } from "@/components/routes/card-like";
 
 // A few elevation-profile shapes; picked deterministically per route.
 const SPARKS = [
@@ -72,7 +73,7 @@ export function RouteCard({
           <span><b>{formatDuration(route.durationMin)}</b></span>
         </div>
         <div className="foot">
-          <span className="likes"><HeartIcon width={16} height={16} />{route.likesCount}</span>
+          <CardLike routeId={route.id} initialLiked={route.liked ?? false} initialCount={route.likesCount} />
           <SaveButton routeId={route.id} initialSaved={route.saved ?? false} />
         </div>
       </div>

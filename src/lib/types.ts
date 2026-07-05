@@ -15,6 +15,7 @@ export interface RouteSummary {
   likesCount: number;
   thumbnailUrl?: string | null;
   saved?: boolean;
+  liked?: boolean;
   authorUsername?: string;
 }
 

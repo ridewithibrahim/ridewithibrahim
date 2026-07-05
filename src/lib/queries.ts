@@ -63,20 +63,31 @@ async function enrich(
     data: { user },
   } = await supabase.auth.getUser();
   let savedSet = new Set<string>();
+  let likedSet = new Set<string>();
   if (user) {
-    const { data: saves } = await supabase
-      .from("route_saves")
-      .select("route_id")
-      .eq("user_id", user.id)
-      .in("route_id", ids)
-      .returns<{ route_id: string }[]>();
+    const [{ data: saves }, { data: likes }] = await Promise.all([
+      supabase
+        .from("route_saves")
+        .select("route_id")
+        .eq("user_id", user.id)
+        .in("route_id", ids)
+        .returns<{ route_id: string }[]>(),
+      supabase
+        .from("route_likes")
+        .select("route_id")
+        .eq("user_id", user.id)
+        .in("route_id", ids)
+        .returns<{ route_id: string }[]>(),
+    ]);
     savedSet = new Set((saves ?? []).map((s) => s.route_id));
+    likedSet = new Set((likes ?? []).map((l) => l.route_id));
   }
 
   return routes.map((r, i) => ({
     ...r,
     authorUsername: authorMap.get(rows[i].user_id),
     saved: savedSet.has(r.id),
+    liked: likedSet.has(r.id),
   }));
 }
 

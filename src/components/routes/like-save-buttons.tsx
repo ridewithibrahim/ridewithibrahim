@@ -27,15 +27,6 @@ export function LikeSaveButtons({
   const [pending, setPending] = useState({ like: false, save: false });
   const [err, setErr] = useState("");
 
-  // Beğeni sayısını gerçek satır sayısından oku (trigger'a bağımlı değil).
-  async function refreshLikeCount() {
-    const { count } = await supabase
-      .from("route_likes")
-      .select("*", { count: "exact", head: true })
-      .eq("route_id", routeId);
-    if (typeof count === "number") setLikes(count);
-  }
-
   async function toggle(kind: "like" | "save") {
     if (!isAuthed) {
       router.push(`/login?next=/rotalar/${routeId}`);
@@ -86,8 +77,6 @@ export function LikeSaveButtons({
         setSaved(wasOn);
       }
       setErr(error.message);
-    } else if (kind === "like") {
-      refreshLikeCount(); // sayıyı DB gerçeğiyle eşitle
     }
 
     setPending((p) => ({ ...p, [kind]: false }));
