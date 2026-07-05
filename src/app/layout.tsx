@@ -25,7 +25,13 @@ export const metadata: Metadata = {
   description:
     "Bisiklet, moto, kamp ve keşif severler için topluluk rotası ve buluşma platformu. Rotanı paylaş, haritada keşfet, buluşmalara katıl.",
   metadataBase: new URL("https://ridewithibrahim.com"),
-  openGraph: { type: "website", locale: "tr_TR", siteName: "RideWithIbrahim" },
+  openGraph: {
+    type: "website",
+    locale: "tr_TR",
+    siteName: "RideWithIbrahim",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "RideWithIbrahim — Her rota burada başlar" }],
+  },
+  twitter: { card: "summary_large_image", images: ["/og-image.png"] },
   appleWebApp: {
     capable: true,
     title: "RideWithIbrahim",
