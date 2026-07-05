@@ -66,6 +66,7 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
   const [camps, setCamps] = useState<CampSpot[] | null>(null);
   const [showCamps, setShowCamps] = useState(false);
   const [campsBusy, setCampsBusy] = useState(false);
+  const autoCampsRef = useRef(false); // katmanı "Kamp" filtresi mi açtı?
 
   const userMarkerRef = useRef<Marker | null>(null);
   const [userLoc, setUserLoc] = useState<[number, number] | null>(null);
@@ -90,11 +91,7 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
       .sort((a, b) => (a.distanceKm ?? 0) - (b.distanceKm ?? 0));
   }, [filtered, userLoc]);
 
-  async function toggleCamps() {
-    if (showCamps) {
-      setShowCamps(false);
-      return;
-    }
+  async function enableCamps() {
     if (!camps) {
       setCampsBusy(true);
       const supabase = createClient();
@@ -108,6 +105,31 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
     }
     setShowCamps(true);
   }
+
+  async function toggleCamps() {
+    if (showCamps) {
+      autoCampsRef.current = false;
+      setShowCamps(false);
+      return;
+    }
+    autoCampsRef.current = false; // elle açıldı
+    await enableCamps();
+  }
+
+  // "Kamp" filtresi seçilince noktaları otomatik göster; filtreden çıkınca
+  // (katmanı elle açmadıysa) otomatik gizle.
+  useEffect(() => {
+    if (type === "kamp") {
+      if (!showCamps) {
+        autoCampsRef.current = true;
+        void enableCamps();
+      }
+    } else if (autoCampsRef.current) {
+      autoCampsRef.current = false;
+      setShowCamps(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type]);
 
   function locateMe() {
     // Açıkken tekrar basılırsa kapat.
@@ -348,7 +370,21 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
         </div>
 
         {listRoutes.length === 0 ? (
-          <div className="empty">Bu filtreye uyan rota yok.<br />Filtreleri sıfırlamayı dene.</div>
+          <div className="empty">
+            {type === "kamp" ? (
+              <>
+                ⛺ Kamp noktaları haritada gösteriliyor.
+                <br />
+                Henüz kamp <b>rotası</b> paylaşılmamış — ilkini sen ekleyebilirsin!
+              </>
+            ) : (
+              <>
+                Bu filtreye uyan rota yok.
+                <br />
+                Filtreleri sıfırlamayı dene.
+              </>
+            )}
+          </div>
         ) : (
           listRoutes.map((r) => {
             const d = DIFFICULTY[r.difficulty];
