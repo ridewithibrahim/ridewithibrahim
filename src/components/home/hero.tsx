@@ -1,8 +1,21 @@
 import Link from "next/link";
 import { MapIcon, PlusIcon, PinIcon } from "./icons";
-import type { SiteStats } from "@/lib/queries";
+import type { SiteStats, HeroRoute } from "@/lib/queries";
+import { DIFFICULTY, ROUTE_TYPES, km, formatDuration } from "@/lib/types";
 
-export function Hero({ stats }: { stats?: SiteStats }) {
+export function Hero({ stats, route }: { stats?: SiteStats; route?: HeroRoute | null }) {
+  // Vitrin kartı: gerçek rota varsa onu göster, yoksa örnek içerikle ayakta kal.
+  const r = route ?? null;
+  const cardTitle = r?.title ?? "Kartepe Zirve Tırmanışı";
+  const cardSub = r ? `${r.province} · ${ROUTE_TYPES[r.routeType].label}` : "Kocaeli · Yol Bisikleti";
+  const diffLabel = r ? DIFFICULTY[r.difficulty].label : "Zor";
+  const diffClass = r ? DIFFICULTY[r.difficulty].className : "hard";
+  const pathColor = r ? DIFFICULTY[r.difficulty].color : "#5FB8A3";
+  const distTxt = r ? km(r.distanceM) : "48,2";
+  const gainTxt = r ? `↑${r.elevationGainM.toLocaleString("tr-TR")}` : "↑1.240";
+  const durTxt = r ? formatDuration(r.durationMin) : "3:10";
+  const pinB = r ? `↑ ${r.elevationGainM.toLocaleString("tr-TR")} m TIRMANIŞ` : "ZİRVE 1.640m";
+
   const items = [
     { num: (stats?.routes ?? 0).toLocaleString("tr-TR"), lbl: "Rota" },
     { num: (stats?.riders ?? 0).toLocaleString("tr-TR"), lbl: "Sürücü" },
@@ -61,6 +74,35 @@ export function Hero({ stats }: { stats?: SiteStats }) {
             </div>
           </div>
 
+          {r ? (
+            <Link href={`/rotalar/${r.id}`} className="hero-card hero-card-link" aria-label={`${cardTitle} rotasını incele`}>
+            <div className="map">
+              <svg viewBox="0 0 420 248" preserveAspectRatio="none" aria-hidden>
+                <g fill="none" stroke="#1f352b" strokeWidth="1">
+                  <path d="M0 70 C 90 50 150 90 240 70 S 380 40 440 60" />
+                  <path d="M0 120 C 90 100 150 140 240 120 S 380 90 440 110" />
+                  <path d="M0 175 C 90 158 150 196 240 178 S 380 148 440 168" />
+                </g>
+                <path className="hero-card-path" d="M55 200 C 120 180 130 120 200 120 S 300 70 360 55"
+                  fill="none" stroke={pathColor} strokeWidth="3" strokeLinecap="round" />
+              </svg>
+              <span className="pin a">BAŞLANGIÇ</span>
+              <span className="pin b">{pinB}</span>
+            </div>
+            <div className="hc-meta">
+              <div>
+                <div className="hc-title">{cardTitle}</div>
+                <div className="hc-sub"><PinIcon width={12} height={12} /> {cardSub}</div>
+              </div>
+              <span className={`diff ${diffClass}`} style={{ position: "static" }}>{diffLabel}</span>
+            </div>
+            <div className="hc-readout">
+              <div><div className="k">Mesafe</div><div className="v">{distTxt}<span style={{ fontSize: 11, color: "var(--ink-faint)" }}> km</span></div></div>
+              <div><div className="k">İrtifa</div><div className="v amber">{gainTxt}<span style={{ fontSize: 11, color: "var(--ink-faint)" }}> m</span></div></div>
+              <div><div className="k">Süre</div><div className="v">{durTxt}</div></div>
+            </div>
+          </Link>
+          ) : (
           <div className="hero-card">
             <div className="map">
               <svg viewBox="0 0 420 248" preserveAspectRatio="none" aria-hidden>
@@ -70,24 +112,25 @@ export function Hero({ stats }: { stats?: SiteStats }) {
                   <path d="M0 175 C 90 158 150 196 240 178 S 380 148 440 168" />
                 </g>
                 <path className="hero-card-path" d="M55 200 C 120 180 130 120 200 120 S 300 70 360 55"
-                  fill="none" stroke="#5FB8A3" strokeWidth="3" strokeLinecap="round" />
+                  fill="none" stroke={pathColor} strokeWidth="3" strokeLinecap="round" />
               </svg>
               <span className="pin a">BAŞLANGIÇ</span>
-              <span className="pin b">ZİRVE 1.640m</span>
+              <span className="pin b">{pinB}</span>
             </div>
             <div className="hc-meta">
               <div>
-                <div className="hc-title">Kartepe Zirve Tırmanışı</div>
-                <div className="hc-sub"><PinIcon width={12} height={12} /> Kocaeli · Yol Bisikleti</div>
+                <div className="hc-title">{cardTitle}</div>
+                <div className="hc-sub"><PinIcon width={12} height={12} /> {cardSub}</div>
               </div>
-              <span className="diff hard" style={{ position: "static" }}>Zor</span>
+              <span className={`diff ${diffClass}`} style={{ position: "static" }}>{diffLabel}</span>
             </div>
             <div className="hc-readout">
-              <div><div className="k">Mesafe</div><div className="v">48,2<span style={{ fontSize: 11, color: "var(--ink-faint)" }}> km</span></div></div>
-              <div><div className="k">İrtifa</div><div className="v amber">↑1.240<span style={{ fontSize: 11, color: "var(--ink-faint)" }}> m</span></div></div>
-              <div><div className="k">Süre</div><div className="v">3:10</div></div>
+              <div><div className="k">Mesafe</div><div className="v">{distTxt}<span style={{ fontSize: 11, color: "var(--ink-faint)" }}> km</span></div></div>
+              <div><div className="k">İrtifa</div><div className="v amber">{gainTxt}<span style={{ fontSize: 11, color: "var(--ink-faint)" }}> m</span></div></div>
+              <div><div className="k">Süre</div><div className="v">{durTxt}</div></div>
             </div>
           </div>
+          )}
         </div>
       </div>
     </header>

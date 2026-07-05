@@ -271,3 +271,52 @@ export async function getEvents(): Promise<EventSummary[]> {
     return [];
   }
 }
+
+/** Ana sayfa vitrin kartı: son rotalardan rastgele biri (her yüklemede değişebilir). */
+export interface HeroRoute {
+  id: string;
+  title: string;
+  province: string;
+  routeType: RouteSummary["routeType"];
+  difficulty: RouteSummary["difficulty"];
+  distanceM: number;
+  elevationGainM: number;
+  durationMin: number;
+}
+
+export async function getHeroRoute(): Promise<HeroRoute | null> {
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("routes")
+      .select("id, title, province, route_type, difficulty, distance_m, elevation_gain_m, duration_min")
+      .order("created_at", { ascending: false })
+      .limit(60)
+      .returns<
+        {
+          id: string;
+          title: string;
+          province: string;
+          route_type: HeroRoute["routeType"];
+          difficulty: HeroRoute["difficulty"];
+          distance_m: number;
+          elevation_gain_m: number;
+          duration_min: number;
+        }[]
+      >();
+    if (!data?.length) return null;
+    const r = data[Math.floor(Math.random() * data.length)];
+    return {
+      id: r.id,
+      title: r.title,
+      province: r.province,
+      routeType: r.route_type,
+      difficulty: r.difficulty,
+      distanceM: r.distance_m,
+      elevationGainM: r.elevation_gain_m,
+      durationMin: r.duration_min,
+    };
+  } catch {
+    return null;
+  }
+}
