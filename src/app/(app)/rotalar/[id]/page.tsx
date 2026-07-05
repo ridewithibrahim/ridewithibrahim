@@ -8,6 +8,7 @@ import { RouteDetailMap } from "@/components/routes/route-detail-map";
 import { ElevationChart } from "@/components/routes/elevation-chart";
 import { LikeSaveButtons } from "@/components/routes/like-save-buttons";
 import { ShareButton } from "@/components/routes/share-button";
+import { StoryCardButton } from "@/components/routes/story-card-button";
 import { DeleteRouteButton } from "@/components/routes/delete-route-button";
 import { Comments } from "@/components/routes/comments";
 
@@ -225,6 +226,14 @@ export default async function RouteDetailPage({
           <ShareButton
             title={route.title}
             text={`${route.title} — ${route.province} · ${km(route.distance_m)} km 🚴`}
+          />
+          <StoryCardButton
+            title={route.title}
+            province={route.province}
+            stats={`${km(route.distance_m)} km  ·  ↑ ${route.elevation_gain_m.toLocaleString("tr-TR")} m  ·  ${formatDuration(route.duration_min)}`}
+            diffLabel={diff.label}
+            diffColor={diff.color}
+            coords={coords as [number, number][]}
           />
           {route.gpx_url && (
             <a className="gpx-download" href={route.gpx_url} download>

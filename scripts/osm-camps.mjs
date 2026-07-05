@@ -53,6 +53,19 @@ out center tags;`;
   throw new Error("Overpass hatası: " + lastErr);
 }
 
+// --- kalite süzgeci ---
+const JUNK_NAME = /parking|otopark|park yeri|wc\b|tuvalet|mezarl|cemetery|picnic|piknik/i;
+
+function qualityScore(tags) {
+  let s = 0;
+  if (tags.website || tags["contact:website"] || tags.phone || tags["contact:phone"]) s += 2;
+  for (const k of ["fee", "drinking_water", "toilets", "shower", "power_supply",
+                   "operator", "capacity", "internet_access", "tents", "caravans", "opening_hours"]) {
+    if (tags[k] != null) s += 1;
+  }
+  return s;
+}
+
 function describe(tags) {
   const parts = [];
   if (tags.fee === "no") parts.push("Ücretsiz");
@@ -79,15 +92,22 @@ async function main() {
     const lat = el.lat ?? el.center?.lat;
     const lng = el.lon ?? el.center?.lon;
     if (!name || lat == null || lng == null) continue;
+    if (JUNK_NAME.test(name)) continue; // yanlış etiketlenmişleri ele
     const key = name.toLowerCase() + "|" + lat.toFixed(3) + "|" + lng.toFixed(3);
     if (seen.has(key)) continue;
     seen.add(key);
-    spots.push({ name, lat, lng, description: describe(el.tags ?? {}), source: "osm" });
+    spots.push({
+      name, lat, lng,
+      description: describe(el.tags ?? {}),
+      source: "osm",
+      score: qualityScore(el.tags ?? {}),
+    });
   }
 
-  const picked = spots.slice(0, LIMIT);
-  console.log(`✅ ${spots.length} uygun nokta; ${picked.length} tanesi seçildi.\n`);
-  for (const s of picked.slice(0, 40)) console.log(`  • ${s.name}`);
+  spots.sort((a, b) => b.score - a.score); // en zengin kayıtlar öne
+  const picked = spots.slice(0, LIMIT).map(({ score, ...rest }) => ({ ...rest, score }));
+  console.log(`✅ ${spots.length} uygun nokta; en kaliteli ${picked.length} tanesi seçildi.\n`);
+  for (const s of picked.slice(0, 40)) console.log(`  • [${"★".repeat(Math.min(s.score, 5)) || "—"}] ${s.name}`);
   if (picked.length > 40) console.log(`  … ve ${picked.length - 40} nokta daha`);
 
   if (DRY) {
@@ -105,7 +125,7 @@ async function main() {
 
   let ok = 0;
   for (let i = 0; i < picked.length; i += 50) {
-    const chunk = picked.slice(i, i + 50);
+    const chunk = picked.slice(i, i + 50).map(({ score: _s, ...row }) => row);
     const { error } = await supabase.from("camp_spots").insert(chunk);
     if (error) console.error("  ✗ parça hatası:", error.message);
     else { ok += chunk.length; console.log(`  ✓ ${ok}/${picked.length} yüklendi`); }
