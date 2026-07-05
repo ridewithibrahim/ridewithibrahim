@@ -25,9 +25,9 @@ export function CtaBand({ authed = false }: { authed?: boolean }) {
             </>
           ) : (
             <>
-              <p>Ücretsiz katıl, ilk rotanı paylaş ve Türkiye&apos;nin en aktif sürüş topluluğunun parçası ol.</p>
+              <p>Aramıza katıl, ilk rotanı paylaş ve Türkiye&apos;nin en aktif sürüş topluluğunun parçası ol.</p>
               <div className="actions">
-                <Link className="btn btn-primary" href="/signup">Ücretsiz katıl</Link>
+                <Link className="btn btn-primary" href="/signup">Katıl</Link>
                 <Link className="btn btn-ghost" href="/harita">Önce rotalara bak</Link>
               </div>
             </>

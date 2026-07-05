@@ -105,7 +105,7 @@ export function Navbar({ username, unread = 0 }: { username?: string | null; unr
           ) : (
             <>
               <Link className="btn btn-ghost btn-sm" href="/login">Giriş yap</Link>
-              <Link className="btn btn-primary btn-sm" href="/signup">Ücretsiz katıl</Link>
+              <Link className="btn btn-primary btn-sm" href="/signup">Katıl</Link>
             </>
           )}
           <button className="nav-burger" aria-label="Menü" aria-expanded={open} onClick={() => setOpen((v) => !v)}>

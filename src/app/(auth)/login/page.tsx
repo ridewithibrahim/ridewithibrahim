@@ -17,7 +17,7 @@ export default async function LoginPage({
       <AuthForm action={login} mode="login" next={sp.next} />
 
       <p className="auth-switch">
-        Hesabın yok mu? <Link href="/signup">Ücretsiz katıl</Link>
+        Hesabın yok mu? <Link href="/signup">Katıl</Link>
       </p>
     </>
   );
