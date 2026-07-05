@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { signout } from "@/app/(auth)/actions";
+import { createClient } from "@/lib/supabase/client";
 
 const LINKS = [
   { href: "/rotalar", label: "Rotalar" },
@@ -12,6 +14,31 @@ const LINKS = [
 ];
 
 export function Navbar({ username, unread = 0 }: { username?: string | null; unread?: number }) {
+  const pathname = usePathname();
+  const [count, setCount] = useState(unread);
+
+  // Rozet canlı kalsın: sayfa değiştikçe okunmamış sayısını tazele;
+  // bildirimler sayfasına girildiği an rozeti söndür.
+  useEffect(() => {
+    if (!username) return;
+    if (pathname === "/bildirimler") {
+      setCount(0);
+      return;
+    }
+    let active = true;
+    (async () => {
+      const supabase = createClient();
+      const { count: c } = await supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("read", false);
+      if (active) setCount(c ?? 0);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [pathname, username]);
+
   const [open, setOpen] = useState(false);
 
   return (
@@ -44,7 +71,7 @@ export function Navbar({ username, unread = 0 }: { username?: string | null; unr
                   <path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
                   <path d="M13.7 21a2 2 0 01-3.4 0" />
                 </svg>
-                {unread > 0 && <span className="bell-badge">{unread > 9 ? "9+" : unread}</span>}
+                {count > 0 && <span className="bell-badge">{count > 9 ? "9+" : count}</span>}
               </Link>
               <Link className="nav-gear" href="/ayarlar" aria-label="Ayarlar" title="Ayarlar">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -78,7 +105,7 @@ export function Navbar({ username, unread = 0 }: { username?: string | null; unr
           <>
             <Link href={`/profil/${username}`} onClick={() => setOpen(false)}>Profilim (@{username})</Link>
             <Link href="/bildirimler" onClick={() => setOpen(false)}>
-              Bildirimler{unread > 0 ? ` (${unread > 9 ? "9+" : unread})` : ""}
+              Bildirimler{count > 0 ? ` (${count > 9 ? "9+" : count})` : ""}
             </Link>
             <Link href="/kaydedilenler" onClick={() => setOpen(false)}>Kaydettiklerim</Link>
             <Link href="/ayarlar" onClick={() => setOpen(false)}>Ayarlar</Link>
