@@ -234,6 +234,7 @@ export default async function RouteDetailPage({
             diffLabel={diff.label}
             diffColor={diff.color}
             coords={coords as [number, number][]}
+            photoUrl={route.thumbnail_url}
           />
           {route.gpx_url && (
             <a className="gpx-download" href={route.gpx_url} download>

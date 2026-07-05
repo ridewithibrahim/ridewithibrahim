@@ -45,6 +45,16 @@ function roundedPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: num
   ctx.closePath();
 }
 
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => res(img);
+    img.onerror = () => rej(new Error("Görsel yüklenemedi"));
+    img.src = src;
+  });
+}
+
 export function StoryCardButton({
   title,
   province,
@@ -52,6 +62,7 @@ export function StoryCardButton({
   diffLabel,
   diffColor,
   coords,
+  photoUrl,
 }: {
   title: string;
   province: string;
@@ -59,6 +70,7 @@ export function StoryCardButton({
   diffLabel: string;
   diffColor: string;
   coords: [number, number][];
+  photoUrl?: string | null;
 }) {
   const [busy, setBusy] = useState(false);
 
@@ -66,16 +78,20 @@ export function StoryCardButton({
     if (!TOKEN || coords.length < 2 || busy) return;
     setBusy(true);
     try {
-      // 1) Rota çizgili statik harita görseli
-      const poly = encodeURIComponent(encodePolyline(downsample(coords)));
-      const mapUrl = `https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/path-6+F2B14C-0.95(${poly})/auto/500x500@2x?padding=60&access_token=${TOKEN}`;
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      await new Promise<void>((res, rej) => {
-        img.onload = () => res();
-        img.onerror = () => rej(new Error("Harita görseli alınamadı"));
-        img.src = mapUrl;
-      });
+      // 1) Görsel: rota fotoğrafı varsa o, yoksa (ya da yüklenemezse) rota çizgili harita
+      let img: HTMLImageElement | null = null;
+      if (photoUrl) {
+        try {
+          img = await loadImage(photoUrl);
+        } catch {
+          img = null; // fotoğraf açılamadı → haritaya düş
+        }
+      }
+      if (!img) {
+        const poly = encodeURIComponent(encodePolyline(downsample(coords)));
+        const mapUrl = `https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/path-6+F2B14C-0.95(${poly})/auto/500x500@2x?padding=60&access_token=${TOKEN}`;
+        img = await loadImage(mapUrl);
+      }
 
       // 2) 1080x1920 hikâye tuvali
       const canvas = document.createElement("canvas");
@@ -97,7 +113,15 @@ export function StoryCardButton({
       ctx.save();
       roundedPath(ctx, 40, 190, 1000, 1000, 30);
       ctx.clip();
-      ctx.drawImage(img, 40, 190, 1000, 1000);
+      {
+        // görseli kare alana orantılı kırparak yerleştir (cover)
+        const scale = Math.max(1000 / img.width, 1000 / img.height);
+        const sw = 1000 / scale;
+        const sh = 1000 / scale;
+        const sx = (img.width - sw) / 2;
+        const sy = (img.height - sh) / 2;
+        ctx.drawImage(img, sx, sy, sw, sh, 40, 190, 1000, 1000);
+      }
       ctx.restore();
       ctx.strokeStyle = "rgba(242,177,76,.35)";
       ctx.lineWidth = 3;
