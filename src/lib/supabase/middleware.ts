@@ -2,7 +2,7 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Routes that require an authenticated user.
-const PROTECTED = ["/rotalar/yeni", "/bulusmalar/yeni", "/ayarlar", "/kaydedilenler"];
+const PROTECTED = ["/rotalar/yeni", "/bulusmalar/yeni", "/ayarlar", "/kaydedilenler", "/bildirimler"];
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });

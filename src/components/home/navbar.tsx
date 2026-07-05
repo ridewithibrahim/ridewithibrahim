@@ -11,7 +11,7 @@ const LINKS = [
   { href: "/liderlik", label: "Liderlik" },
 ];
 
-export function Navbar({ username }: { username?: string | null }) {
+export function Navbar({ username, unread = 0 }: { username?: string | null; unread?: number }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -38,6 +38,13 @@ export function Navbar({ username }: { username?: string | null }) {
             <>
               <Link className="btn btn-ghost btn-sm" href={`/profil/${username}`}>
                 @{username}
+              </Link>
+              <Link className="nav-gear nav-bell" href="/bildirimler" aria-label="Bildirimler" title="Bildirimler">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.7 21a2 2 0 01-3.4 0" />
+                </svg>
+                {unread > 0 && <span className="bell-badge">{unread > 9 ? "9+" : unread}</span>}
               </Link>
               <Link className="nav-gear" href="/ayarlar" aria-label="Ayarlar" title="Ayarlar">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -70,6 +77,9 @@ export function Navbar({ username }: { username?: string | null }) {
         {username ? (
           <>
             <Link href={`/profil/${username}`} onClick={() => setOpen(false)}>Profilim (@{username})</Link>
+            <Link href="/bildirimler" onClick={() => setOpen(false)}>
+              Bildirimler{unread > 0 ? ` (${unread > 9 ? "9+" : unread})` : ""}
+            </Link>
             <Link href="/kaydedilenler" onClick={() => setOpen(false)}>Kaydettiklerim</Link>
             <Link href="/ayarlar" onClick={() => setOpen(false)}>Ayarlar</Link>
           </>
