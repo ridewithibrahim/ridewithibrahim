@@ -784,3 +784,12 @@ button.card-like:disabled { opacity: .7; }
 .msg-btn { gap: 8px; }
 .msg-btn svg { flex: 0 0 auto; }
 .msg-btn-wrap .field-error { max-width: 260px; text-align: right; }
+
+/* profil basligi mobil duzeni */
+@media (max-width: 720px) {
+  .pf-head { flex-wrap: wrap; }
+  .pf-id { min-width: 0; }
+  .pf-id h1 { font-size: 26px; word-break: break-word; }
+  .pf-actions { margin-left: 0; flex-basis: 100%; justify-content: flex-start; margin-top: 4px; }
+  .pf-actions .btn { flex: 1 1 auto; justify-content: center; }
+}
