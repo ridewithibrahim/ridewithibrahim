@@ -54,10 +54,67 @@ const STR = {
   password: ["Şifre", "Password"],
   please_wait: ["Lütfen bekle…", "Please wait…"],
   create_account: ["Hesabı oluştur", "Create account"],
+
+  // --- ana sayfa ---
+  hero_eyebrow: ["Bisiklet · Moto · Kamp · Keşif", "Cycling · Moto · Camping · Exploring"],
+  hero_h1a: ["Her rota", "Every route"],
+  hero_h1b: ["burada başlar.", "starts here."],
+  hero_lead: [
+    "GPX'ini yükle; zorluğu, irtifayı ve süreyi gör. Türkiye'nin ve dünyanın en iyi topluluk rotalarını haritada keşfet, buluşmalara katıl.",
+    "Upload a GPX to see difficulty, elevation and time. Explore the best community routes in Türkiye and beyond, and join group rides.",
+  ],
+  hero_explore: ["Rotaları keşfet", "Explore routes"],
+  stat_routes: ["Rota", "Routes"],
+  stat_riders: ["Sürücü", "Riders"],
+  stat_km: ["Toplam km", "Total km"],
+  stat_meetups: ["Buluşma", "Meetups"],
+  start_pin: ["BAŞLANGIÇ", "START"],
+  climb: ["TIRMANIŞ", "CLIMB"],
+  distance: ["Mesafe", "Distance"],
+  elevation: ["İrtifa", "Elevation"],
+  duration: ["Süre", "Time"],
+  featured_eyebrow: ["Öne çıkan rotalar", "Featured routes"],
+  featured_h2: ["Bu hafta topluluğun favorileri", "This week's community favourites"],
+  see_all: ["Tümünü gör", "See all"],
+  no_routes_yet: ["Henüz rota paylaşılmadı.", "No routes shared yet."],
+  share_first: ["İlk rotayı sen paylaş", "Be the first to share one"],
+  livemap_eyebrow: ["Canlı harita", "Live map"],
+  livemap_h2: ["Tüm rotalar tek haritada", "Every route on one map"],
+  livemap_h3: ["Yakınındaki rotaları bul", "Find routes near you"],
+  livemap_p: [
+    "Türe, zorluğa, mesafeye ve ile göre filtrele. İrtifa profilini incele, GPX olarak indir, yola çık.",
+    "Filter by type, difficulty, distance and region. Check the elevation profile, download the GPX, hit the road.",
+  ],
+  livemap_cta: ["Haritada keşfet", "Explore the map"],
+  events_eyebrow: ["Yaklaşan buluşmalar", "Upcoming meetups"],
+  events_h2: ["Topluluğa katıl", "Join the community"],
+  all_events: ["Tüm etkinlikler", "All events"],
+  no_events: ["Yaklaşan buluşma yok.", "No upcoming meetups."],
+  create_first_event: ["İlk buluşmayı sen aç", "Create the first one"],
+
+  // --- zorluk & tür adları ---
+  d_kolay: ["Kolay", "Easy"],
+  d_orta: ["Orta", "Medium"],
+  d_zor: ["Zor", "Hard"],
+  d_uzman: ["Uzman", "Expert"],
+  ty_yol: ["Yol Bisikleti", "Road Cycling"],
+  ty_mtb: ["MTB", "MTB"],
+  ty_moto: ["Moto", "Moto"],
+  ty_kamp: ["Kamp", "Camping"],
 } as const;
 
 export type StrKey = keyof typeof STR;
 
 export function t(lang: Lang, key: StrKey): string {
   return STR[key][lang === "en" ? 1 : 0];
+}
+
+/** Zorluk adı (kolay/orta/zor/uzman) — dile göre. */
+export function diffName(lang: Lang, key: "kolay" | "orta" | "zor" | "uzman"): string {
+  return t(lang, ("d_" + key) as StrKey);
+}
+
+/** Rota türü adı — dile göre. */
+export function typeName(lang: Lang, key: "yol" | "mtb" | "moto" | "kamp"): string {
+  return t(lang, ("ty_" + key) as StrKey);
 }

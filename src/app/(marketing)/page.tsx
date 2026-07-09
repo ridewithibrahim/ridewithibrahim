@@ -27,10 +27,10 @@ export default async function HomePage() {
 
   return (
     <>
-      <Hero stats={stats} route={heroRoute} />
-      <FeaturedRoutes routes={routes} />
-      <MapPreview routes={mapRoutes} />
-      <UpcomingEvents events={events} />
+      <Hero stats={stats} route={heroRoute} lang={lang} />
+      <FeaturedRoutes routes={routes} lang={lang} />
+      <MapPreview routes={mapRoutes} lang={lang} />
+      <UpcomingEvents events={events} lang={lang} />
       <CtaBand authed={authed} lang={lang} />
     </>
   );

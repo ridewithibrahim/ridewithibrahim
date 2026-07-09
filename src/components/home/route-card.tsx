@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { RouteSummary } from "@/lib/types";
 import { DIFFICULTY, km, formatDuration } from "@/lib/types";
+import { diffName, type Lang } from "@/lib/i18n";
 import { PinIcon, RouteTypeIcon } from "./icons";
 import { SaveButton } from "@/components/routes/save-button";
 import { CardLike } from "@/components/routes/card-like";
@@ -19,13 +20,7 @@ function sparkIndex(id: string) {
   return h;
 }
 
-export function RouteCard({
-  route,
-  reveal = false,
-}: {
-  route: RouteSummary;
-  reveal?: boolean;
-}) {
+export function RouteCard({ route, reveal = false, lang = "tr" }: { route: RouteSummary; reveal?: boolean; lang?: Lang }) {
   const diff = DIFFICULTY[route.difficulty];
   const path = SPARKS[sparkIndex(route.id)];
   const gid = `spark-${route.id}`;
@@ -51,7 +46,7 @@ export function RouteCard({
             <path d={path} fill="none" stroke={diff.color} strokeWidth="2" />
           </svg>
         )}
-        <span className={`diff ${diff.className}`}>{diff.label}</span>
+        <span className={`diff ${diff.className}`}>{diffName(lang, route.difficulty)}</span>
         <span className="rtype" aria-hidden>
           <RouteTypeIcon type={route.routeType} width={16} height={16} />
         </span>

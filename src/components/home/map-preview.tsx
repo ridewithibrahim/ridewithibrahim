@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { t } from "@/lib/i18n";
 import type { MapRoute } from "@/lib/map-data";
 import { DIFFICULTY } from "@/lib/types";
 import { ArrowIcon, BikeIcon, MotoIcon, TentIcon } from "./icons";
@@ -20,7 +21,7 @@ function toGeoJSON(routes: MapRoute[]) {
   };
 }
 
-export function MapPreview({ routes }: { routes: MapRoute[] }) {
+export function MapPreview({ routes, lang = "tr" }: { lang?: import("@/lib/i18n").Lang; routes: MapRoute[] }) {
   const ref = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
   const [ready, setReady] = useState(false);
@@ -65,8 +66,8 @@ export function MapPreview({ routes }: { routes: MapRoute[] }) {
       <div className="wrap">
         <div className="sec-head reveal">
           <div>
-            <span className="eyebrow">Canlı harita</span>
-            <h2>Tüm rotalar tek haritada</h2>
+            <span className="eyebrow">{t(lang, "livemap_eyebrow")}</span>
+            <h2>{t(lang, "livemap_h2")}</h2>
           </div>
           <Link className="link" href="/harita">
             Haritayı aç <ArrowIcon width={15} height={15} />
@@ -105,10 +106,10 @@ export function MapPreview({ routes }: { routes: MapRoute[] }) {
               ))}
             </div>
             <div className="mapx-card">
-              <h3>Yakınındaki rotaları bul</h3>
-              <p>Türe, zorluğa, mesafeye ve ile göre filtrele. İrtifa profilini incele, GPX olarak indir, yola çık.</p>
+              <h3>{t(lang, "livemap_h3")}</h3>
+              <p>{t(lang, "livemap_p")}</p>
               <Link className="btn btn-primary btn-sm" href="/harita">
-                Haritada keşfet <ArrowIcon width={15} height={15} />
+                {t(lang, "livemap_cta")} <ArrowIcon width={15} height={15} />
               </Link>
             </div>
           </div>

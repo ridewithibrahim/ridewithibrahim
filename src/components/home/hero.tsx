@@ -1,26 +1,27 @@
 import Link from "next/link";
 import { MapIcon, PlusIcon, PinIcon } from "./icons";
 import type { SiteStats, HeroRoute } from "@/lib/queries";
-import { DIFFICULTY, ROUTE_TYPES, km, formatDuration } from "@/lib/types";
+import { DIFFICULTY, km, formatDuration } from "@/lib/types";
+import { t, diffName, typeName, type Lang } from "@/lib/i18n";
 
-export function Hero({ stats, route }: { stats?: SiteStats; route?: HeroRoute | null }) {
+export function Hero({ stats, route, lang = "tr" }: { stats?: SiteStats; route?: HeroRoute | null; lang?: Lang }) {
   // Vitrin kartı: gerçek rota varsa onu göster, yoksa örnek içerikle ayakta kal.
   const r = route ?? null;
   const cardTitle = r?.title ?? "Kartepe Zirve Tırmanışı";
-  const cardSub = r ? `${r.province} · ${ROUTE_TYPES[r.routeType].label}` : "Kocaeli · Yol Bisikleti";
-  const diffLabel = r ? DIFFICULTY[r.difficulty].label : "Zor";
+  const cardSub = r ? `${r.province} · ${typeName(lang, r.routeType)}` : "Kocaeli · Yol Bisikleti";
+  const diffLabel = r ? diffName(lang, r.difficulty) : "Zor";
   const diffClass = r ? DIFFICULTY[r.difficulty].className : "hard";
   const pathColor = r ? DIFFICULTY[r.difficulty].color : "#5FB8A3";
   const distTxt = r ? km(r.distanceM) : "48,2";
   const gainTxt = r ? `↑${r.elevationGainM.toLocaleString("tr-TR")}` : "↑1.240";
   const durTxt = r ? formatDuration(r.durationMin) : "3:10";
-  const pinB = r ? `↑ ${r.elevationGainM.toLocaleString("tr-TR")} m TIRMANIŞ` : "ZİRVE 1.640m";
+  const pinB = r ? `↑ ${r.elevationGainM.toLocaleString("tr-TR")} m ${t(lang, "climb")}` : "ZİRVE 1.640m";
 
   const items = [
-    { num: (stats?.routes ?? 0).toLocaleString("tr-TR"), lbl: "Rota" },
-    { num: (stats?.riders ?? 0).toLocaleString("tr-TR"), lbl: "Sürücü" },
-    { num: (stats?.totalKm ?? 0).toLocaleString("tr-TR"), lbl: "Toplam km" },
-    { num: (stats?.events ?? 0).toLocaleString("tr-TR"), lbl: "Buluşma" },
+    { num: (stats?.routes ?? 0).toLocaleString("tr-TR"), lbl: t(lang, "stat_routes") },
+    { num: (stats?.riders ?? 0).toLocaleString("tr-TR"), lbl: t(lang, "stat_riders") },
+    { num: (stats?.totalKm ?? 0).toLocaleString("tr-TR"), lbl: t(lang, "stat_km") },
+    { num: (stats?.events ?? 0).toLocaleString("tr-TR"), lbl: t(lang, "stat_meetups") },
   ];
   return (
     <header className="hero">
@@ -49,19 +50,16 @@ export function Hero({ stats, route }: { stats?: SiteStats; route?: HeroRoute | 
           <div>
             <span className="hero-eyebrow">
               <span className="dot" />
-              <span className="eyebrow">Bisiklet · Moto · Kamp · Keşif</span>
+              <span className="eyebrow">{t(lang, "hero_eyebrow")}</span>
             </span>
-            <h1>Her rota<br /><span className="accent">burada başlar.</span></h1>
-            <p className="lead">
-              GPX&apos;ini yükle; zorluğu, irtifayı ve süreyi gör. Türkiye&apos;nin ve dünyanın en iyi
-              topluluk rotalarını haritada keşfet, buluşmalara katıl.
-            </p>
+            <h1>{t(lang, "hero_h1a")}<br /><span className="accent">{t(lang, "hero_h1b")}</span></h1>
+            <p className="lead">{t(lang, "hero_lead")}</p>
             <div className="hero-actions">
               <Link className="btn btn-primary" href="/harita">
-                <MapIcon width={18} height={18} /> Rotaları keşfet
+                <MapIcon width={18} height={18} /> {t(lang, "hero_explore")}
               </Link>
               <Link className="btn btn-ghost" href="/rotalar/yeni">
-                <PlusIcon width={18} height={18} /> Rota paylaş
+                <PlusIcon width={18} height={18} /> {t(lang, "cta_share")}
               </Link>
             </div>
             <div className="hero-stats">
@@ -86,7 +84,7 @@ export function Hero({ stats, route }: { stats?: SiteStats; route?: HeroRoute | 
                 <path className="hero-card-path" d="M55 200 C 120 180 130 120 200 120 S 300 70 360 55"
                   fill="none" stroke={pathColor} strokeWidth="3" strokeLinecap="round" />
               </svg>
-              <span className="pin a">BAŞLANGIÇ</span>
+              <span className="pin a">{t(lang, "start_pin")}</span>
               <span className="pin b">{pinB}</span>
             </div>
             <div className="hc-meta">
@@ -97,9 +95,9 @@ export function Hero({ stats, route }: { stats?: SiteStats; route?: HeroRoute | 
               <span className={`diff ${diffClass}`} style={{ position: "static" }}>{diffLabel}</span>
             </div>
             <div className="hc-readout">
-              <div><div className="k">Mesafe</div><div className="v">{distTxt}<span style={{ fontSize: 11, color: "var(--ink-faint)" }}> km</span></div></div>
-              <div><div className="k">İrtifa</div><div className="v amber">{gainTxt}<span style={{ fontSize: 11, color: "var(--ink-faint)" }}> m</span></div></div>
-              <div><div className="k">Süre</div><div className="v">{durTxt}</div></div>
+              <div><div className="k">{t(lang, "distance")}</div><div className="v">{distTxt}<span style={{ fontSize: 11, color: "var(--ink-faint)" }}> km</span></div></div>
+              <div><div className="k">{t(lang, "elevation")}</div><div className="v amber">{gainTxt}<span style={{ fontSize: 11, color: "var(--ink-faint)" }}> m</span></div></div>
+              <div><div className="k">{t(lang, "duration")}</div><div className="v">{durTxt}</div></div>
             </div>
           </Link>
           ) : (
@@ -114,7 +112,7 @@ export function Hero({ stats, route }: { stats?: SiteStats; route?: HeroRoute | 
                 <path className="hero-card-path" d="M55 200 C 120 180 130 120 200 120 S 300 70 360 55"
                   fill="none" stroke={pathColor} strokeWidth="3" strokeLinecap="round" />
               </svg>
-              <span className="pin a">BAŞLANGIÇ</span>
+              <span className="pin a">{t(lang, "start_pin")}</span>
               <span className="pin b">{pinB}</span>
             </div>
             <div className="hc-meta">
@@ -125,9 +123,9 @@ export function Hero({ stats, route }: { stats?: SiteStats; route?: HeroRoute | 
               <span className={`diff ${diffClass}`} style={{ position: "static" }}>{diffLabel}</span>
             </div>
             <div className="hc-readout">
-              <div><div className="k">Mesafe</div><div className="v">{distTxt}<span style={{ fontSize: 11, color: "var(--ink-faint)" }}> km</span></div></div>
-              <div><div className="k">İrtifa</div><div className="v amber">{gainTxt}<span style={{ fontSize: 11, color: "var(--ink-faint)" }}> m</span></div></div>
-              <div><div className="k">Süre</div><div className="v">{durTxt}</div></div>
+              <div><div className="k">{t(lang, "distance")}</div><div className="v">{distTxt}<span style={{ fontSize: 11, color: "var(--ink-faint)" }}> km</span></div></div>
+              <div><div className="k">{t(lang, "elevation")}</div><div className="v amber">{gainTxt}<span style={{ fontSize: 11, color: "var(--ink-faint)" }}> m</span></div></div>
+              <div><div className="k">{t(lang, "duration")}</div><div className="v">{durTxt}</div></div>
             </div>
           </div>
           )}
