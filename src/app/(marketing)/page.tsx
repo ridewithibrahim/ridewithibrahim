@@ -7,6 +7,10 @@ import { getFeaturedRoutes, getUpcomingEvents, getSiteStats, getHeroRoute } from
 import { getMapRoutes } from "@/lib/map-data";
 import { createClient } from "@/lib/supabase/server";
 
+export const metadata = {
+  alternates: { canonical: "/", languages: { tr: "/", en: "/en" } },
+};
+
 export default async function HomePage() {
   const supabase = await createClient();
   const [routes, events, mapRoutes, stats, heroRoute, userRes] = await Promise.all([

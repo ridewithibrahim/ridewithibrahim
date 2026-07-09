@@ -2,10 +2,11 @@
 
 ## Proje nedir?
 Bisiklet (yol/MTB), moto ve kamp rotalarının paylaşıldığı Türkçe topluluk platformu.
-Rota paylaşımı (GPX **veya haritada çizerek**), harita keşfi, yakındaki rotalar, beğeni/kaydet/yorum,
-buluşmalar, liderlik, rütbe+rozet sistemi, profiller. **Canlı: https://ridewithibrahim.com**
-Site, OSM'den aktarılan 24 rotayla tohumlandı (@arsiv profili). Durum: **lansman aşaması** —
-teknik çekirdek tamam, odak topluluk büyütmede.
+Rota paylaşımı (GPX **veya haritada çizerek**), harita keşfi, yakındaki rotalar, ⛺ kamp noktaları
+katmanı, beğeni/kaydet/yorum, buluşmalar, liderlik, rütbe+rozetler, **bildirimler**, **birebir
+mesajlaşma (engelle+şikâyet dahil)**, profiller. **Canlı: https://ridewithibrahim.com**
+Tohum içerik: OSM'den 24 rota + ~500 kamp noktası (@arsiv); rotalarda uydu görüntülü otomatik
+kapaklar. Durum: **LANSMAN** — teknik çekirdek tamam, odak topluluk büyütmede.
 
 ## Kullanıcı hakkında (önemli)
 - Proje sahibi İbrahim; kodlama bilgisi azdır, her şeyi AI ile yapar.
@@ -32,6 +33,11 @@ teknik çekirdek tamam, odak topluluk büyütmede.
    kolay #54B97C, orta #5BA3D0, zor #E2823F, uzman #D45D49.
 7. **RPC'lere `null` gönderme:** boş metin `""`, opsiyonel sayı `undefined` (SQL nullif halleder).
 8. **Problems paneli güvenilmez; tek hakem `npm run build`.** VS Code tip sürümü: Workspace Version.
+9. **ESKİ SİTE HAYALETLERİ:** Supabase projesi eski siteden devralındı. Yeni migration'larda
+   `create table if not exists` eski-uyumsuz tabloya çarpıp sessizce zinciri kırabilir
+   (notifications ve messages'ta yaşandı). Belirti: "column X does not exist". Çözüm deseni:
+   kolonları information_schema'dan doğrula → uyumsuzsa `drop table ... cascade` → migration'ı
+   baştan çalıştır.
 
 ## Veritabanı (Supabase — proje id: xpwathmahsrdglcoughe)
 **Tablolar:** `profiles` (**is_admin** boolean dahil), `routes` (path geometry; likes/saves_count trigger'lı;
@@ -40,8 +46,11 @@ thumbnail_url), `route_likes`, `route_saves`, `route_comments` (uuid+content), `
 `routes_nearby` (UI'da kullanılmıyor; ölçek için rezerve).
 **Storage:** `gpx`, `route-thumbnails` (avatarlar da `route-thumbnails/avatars/{uid}/` — üzerine yazma yok,
 her seferinde yeni uuid dosya adı).
-**Migration'lar:** 0001–0006, hepsi çalıştırıldı (0006 = is_admin + "admin delete any ..." politikaları,
-mevcut sahip politikalarına EK olarak — permissive policy'ler OR'lanır).
+**Yeni tablolar:** `camp_spots` (0007: lat/lng düz kolon, PostGIS yok), `notifications` (0008:
+like/comment/join tetikleyicili; 0009 ile exception-zırhlı — bildirim hatası ana eylemi asla
+düşüremez), `conversations`+`messages`+`blocks`+`reports` (0011; `get_or_create_conversation`
+RPC'si engel kontrollü; mesaj RLS'i iki yönlü engelde INSERT'i reddeder; reports'u yalnız admin okur).
+**Migration'lar:** 0001–0011, hepsi çalıştırıldı (0006 admin, 0010 beğeni sayaç eşitleme bakımı).
 RLS her yerde aktif; signup anında oturum açar.
 
 ## Moderasyon
@@ -68,16 +77,28 @@ Koleksiyoncu(15), 100/500 km Kulübü, Tırmanışçı(tek rotada 1000m+), Sevil
 - `/rotalar/yeni`: iki mod — **GPX yükle** veya **🖊 Haritada çiz** (tıkla-çiz, Konumum, mesafe canlı,
   süre türe göre tahmin, tırmanış opsiyonel manuel) + fotoğraf.
 - `(app)/bulusmalar` (+[id]: katıl, **Paylaş**, hosta/admine **iptal**, OG metadata; +yeni).
-- `(app)/liderlik`, `(app)/profil/[username]` (rütbe+rozetler+Kaydettiklerim/Ayarlar butonları),
-  `(app)/ayarlar`, `(app)/kaydedilenler` (kaydedilen rotalar, kayıt sırasıyla).
-- Middleware korumalı: `/rotalar/yeni`, `/bulusmalar/yeni`, `/ayarlar`, `/kaydedilenler`
-  (profiller HERKESE açık — listeye ekleme).
+- `(app)/liderlik`, `(app)/profil/[username]` (rütbe+rozetler; kendi profilinde Kaydettiklerim/
+  Ayarlar, başkasında **💬 Mesaj gönder**; başlık mobilde alt satıra kırılır).
+- `(app)/ayarlar`, `(app)/kaydedilenler`, `(app)/bildirimler` (❤️💬🤝 satırları, girişte okundu),
+  `(app)/mesajlar` (gelen kutusu + engellediklerin), `/mesajlar/[id]` (baloncuklu sohbet, 5 sn
+  tazeleme, Engelle iki aşamalı + Şikâyet formu → reports tablosu).
+- Navbar (client): zarf + zil ikonları **canlı** okunmamış sayaçlı (sayfa geçişinde tarayıcıdan
+  tazelenir; ilgili sayfaya girince söner). Rota kartlarındaki kalp tıklanabilir (CardLike,
+  optimistic; enrich() liked/saved durumunu getirir).
+- Harita: ⛺ Kamp noktaları çipi; "Kamp" tür filtresi seçilince katman otomatik açılır
+  (elle açılan katman filtre değişince kapanmaz — autoCampsRef).
+- Hero vitrin kartı: son 60 rotadan her yüklemede rastgele, tıklanabilir, zorluk renkli.
+- Middleware korumalı: `/rotalar/yeni`, `/bulusmalar/yeni`, `/ayarlar`, `/kaydedilenler`,
+  `/bildirimler`, `/mesajlar` (profiller HERKESE açık — listeye ekleme).
 - PWA: manifest + amber bisiklet ikonları; service worker YOK (bilinçli — önbellek riskleri).
 
 ## SEO
 - **Dinamik sitemap** (`app/sitemap.ts`): statik sayfalar + tüm rota ve buluşma sayfaları DB'den.
 - Google Search Console bağlı, sitemap gönderildi (Başarılı). robots.ts mevcut.
-- Rota/buluşma sayfalarında generateMetadata (başlık+açıklama+og:image).
+- Rota/buluşma sayfalarında generateMetadata (başlık+açıklama+og:image = rota kapağı).
+- Site geneli sosyal kart: `public/og-image.png` (1200×630, PIL ile üretildi) — layout'ta
+  openGraph.images + twitter summary_large_image. Önizleme testleri: opengraph.xyz
+  (mesajlaşma uygulamaları önbelleği inatçıdır).
 - next.config.ts: eski site yönlendirmeleri `/terms→/sartlar`, `/privacy→/gizlilik`, `/contact→/iletisim`.
 - GSC "dizine eklenmedi" kayıtları çoğunlukla bilgidir; hakem: dizinlenen sayfa sayısı + Performans.
 
@@ -89,6 +110,14 @@ Gereksinim: `.env.local` içinde ARSIV_EMAIL/ARSIV_PASSWORD (@arsiv hesabı) + @
 NOT: DB'ye karşı tekrar-kontrolü yok — aynı bölgeyi ikinci kez çalıştırma (kopya üretir).
 Dünyaya açılım = sorgudaki `area["ISO3166-1"="TR"]` satırını değiştirmek. OSM TR'de MTB ilişkisi YOK
 (test edildi) — MTB kategorisi topluluk dolduracak.
+
+**Diğer araçlar (scripts/):**
+- `osm-camps.mjs` — kamp noktaları ithalatı (isim kara listesi + etiket-zenginliği puanıyla en iyi
+  N'i seçer; --dry/--limit; tekrar çalıştırmadan önce `delete from camp_spots where source='osm'`).
+- `rota-kapaklari.mjs` — @arsiv rotalarına Mapbox uydu görüntülü (rota çizgili) kapak üretir,
+  storage'a yükler, thumbnail_url yazar (--dry/--force/--style dark; Referer header ile
+  URL-kısıtlı token'ı geçer). Elle yüklenen fotoğraflar --force'suz korunur.
+- Hikâye kartı (site içi 📸): rota fotoğrafı varsa onu cover-crop kullanır, yoksa statik harita.
 
 ## Tasarım kimliği
 Zemin #0C1512, amber #F2B14C, spruce #5FB8A3. Fontlar: Archivo / Hanken Grotesk / Space Mono.
@@ -102,8 +131,13 @@ Kart dili: küçük kare ikon butonlar, pill chip'ler, ince --line kenarlıklar;
 - Env: NEXT_PUBLIC_SUPABASE_URL / _ANON_KEY / _MAPBOX_TOKEN (+lokalde ARSIV_*). Env değişince Redeploy şart.
 
 ## Yol haritası
-✅ Bitti: yakındaki rotalar, haritada çizme, Analytics, paylaşım+OG, içerik yönetimi (sil/düzenle),
-kaydedilenler, arama, rütbe+rozetler, moderasyon, OSM tohumu (24 rota), dinamik sitemap+GSC, davet metinleri.
-**Şu anki faz: LANSMAN** — davetler, ilk gerçek kullanıcılar, Analytics/Supabase izleme.
-Sıradaki adaylar (veri gelince): takip sistemi → bildirimler → mesajlaşma. Park: i18n/İngilizce +
-dünya rotaları (tetik: anlamlı yabancı trafik/kayıt), "Keşif" türü, routes_nearby'a geçiş (binlerce rotada).
+✅ Bitti: yakındaki rotalar, haritada çizme, kamp noktaları katmanı, Analytics, paylaşım+OG+hikâye
+kartı, içerik yönetimi, kaydedilenler, arama, rütbe+rozetler, moderasyon, **bildirimler**,
+**mesajlaşma (engelle+şikâyet)**, OSM tohumu (24 rota + 500 kamp), uydu kapaklar, dinamik
+sitemap+GSC, tanıtım metinleri.
+**Şu anki faz: LANSMAN** — tanıtım gönderileri, ilk gerçek kullanıcılar; gösterge: Analytics +
+Supabase'de yabancı kayıt/rota + reports tablosu kontrolü.
+Sıradaki adaylar (VERİYLE seçilecek): aynı kişiler rota paylaşıyorsa → takip sistemi; kamp katmanı
+tutuyorsa → kamp Faz 2 (kullanıcı nokta ekleme + detay sayfaları + filtreler); mesajlaşma yoğunsa →
+Realtime'a geçiş. Park: i18n + dünya rotaları (tetik: anlamlı yabancı trafik), routes_nearby RPC'ye
+geçiş (binlerce rotada).

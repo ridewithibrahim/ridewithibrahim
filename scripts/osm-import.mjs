@@ -14,8 +14,11 @@ const ARGS = process.argv.slice(2);
 const DRY = ARGS.includes("--dry");
 const ONLY_MTB = ARGS.includes("--mtb"); // sadece MTB rotalarını al
 const LIMIT = Number(ARGS[ARGS.indexOf("--limit") + 1]) || 25;
-const MIN_KM = 15;
-const MAX_KM = 250;
+const MIN_KM = Number(ARGS[ARGS.indexOf("--min") + 1]) || 15;
+const MAX_KM = Number(ARGS[ARGS.indexOf("--max") + 1]) || 250;
+const areaIdx = ARGS.indexOf("--area");
+const AREA = areaIdx >= 0 ? (ARGS[areaIdx + 1] || "TR").toUpperCase() : "TR"; // ISO ülke kodu
+const ONLY_NCN = ARGS.includes("--ncn"); // sadece ulusal rota ağı (LF/EuroVelo tarzı)
 
 // ---------- .env.local oku ----------
 const env = {};
@@ -112,11 +115,12 @@ const OVERPASS_SERVERS = [
 ];
 
 async function fetchOsmRoutes() {
-  console.log("🌍 OpenStreetMap sorgulanıyor (1-2 dk sürebilir)…");
+  console.log(`🌍 OpenStreetMap sorgulanıyor — bölge: ${AREA}${ONLY_NCN ? " (yalnız ulusal ağ)" : ""} (1-2 dk sürebilir)…`);
+  const netFilter = ONLY_NCN ? '["network"="ncn"]' : "";
   const query = `
 [out:json][timeout:180];
-area["ISO3166-1"="TR"][admin_level=2]->.tr;
-relation["route"~"^(bicycle|mtb)$"]["name"](area.tr);
+area["ISO3166-1"="${AREA}"][admin_level=2]->.a;
+relation["route"~"^(bicycle|mtb)$"]${netFilter}["name"](area.a);
 out body geom;`;
 
   let lastErr = "";
@@ -225,6 +229,7 @@ async function main() {
     const distKm = lineKm(asm.coords);
     const isMtb = rel.tags.route === "mtb";
     if (ONLY_MTB && !isMtb) continue;
+    if (ONLY_NCN && rel.tags.network !== "ncn") continue; // sel önleme: yalnız ulusal ağ
     if (distKm < (isMtb ? 8 : MIN_KM) || distKm > MAX_KM) continue; // MTB parkurları kısa olabilir
     seen.add(name.toLowerCase());
     candidates.push({
@@ -237,6 +242,24 @@ async function main() {
       osmDesc: rel.tags?.description ?? "",
     });
   }
+
+  // Sitede zaten olan @arsiv rotalarını ele — tekrar yükleme derdi bitti
+  try {
+    const sb = createClient(SB_URL, SB_KEY);
+    const { data: prof } = await sb
+      .from("profiles").select("id").eq("username", "arsiv").maybeSingle();
+    if (prof?.id) {
+      const { data: existing } = await sb
+        .from("routes").select("title").eq("user_id", prof.id).limit(1000);
+      const have = new Set((existing ?? []).map((r) => r.title.toLowerCase()));
+      const before = candidates.length;
+      for (let i = candidates.length - 1; i >= 0; i--) {
+        if (have.has(candidates[i].name.toLowerCase())) candidates.splice(i, 1);
+      }
+      if (before - candidates.length > 0)
+        console.log(`   ↺ ${before - candidates.length} rota zaten sitede — atlandı.`);
+    }
+  } catch { /* okunamazsa eleme yapmadan devam */ }
 
   candidates.sort((a, b) => a.rank - b.rank || b.distKm - a.distKm);
   const picked = candidates.slice(0, LIMIT);

@@ -54,6 +54,7 @@ const COLS: { h: string; links: { label: string; href: string }[] }[] = [
       { label: "Rota paylaş", href: "/rotalar/yeni" },
       { label: "Buluşma aç", href: "/bulusmalar/yeni" },
       { label: "Kaydettiklerim", href: "/kaydedilenler" },
+      { label: "🌐 English", href: "/en" },
       { label: "Hesap ayarları", href: "/ayarlar" },
     ],
   },
