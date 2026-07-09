@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { t, type Lang } from "@/lib/i18n";
 
-export function CtaBand({ authed = false }: { authed?: boolean }) {
+export function CtaBand({ authed = false, lang = "tr" }: { authed?: boolean; lang?: Lang }) {
   return (
     <section className="sec" style={{ paddingTop: 0 }}>
       <div className="wrap">
@@ -14,21 +15,21 @@ export function CtaBand({ authed = false }: { authed?: boolean }) {
               </g>
             </svg>
           </div>
-          <h2>Bir sonraki rotan seni bekliyor.</h2>
+          <h2>{t(lang, "cta_title")}</h2>
           {authed ? (
             <>
-              <p>Bildiğin güzel bir parkur mu var? Paylaş, topluluk keşfetsin.</p>
+              <p>{t(lang, "cta_authed_p")}</p>
               <div className="actions">
-                <Link className="btn btn-primary" href="/rotalar/yeni">Rota paylaş</Link>
-                <Link className="btn btn-ghost" href="/harita">Haritayı aç</Link>
+                <Link className="btn btn-primary" href="/rotalar/yeni">{t(lang, "cta_share")}</Link>
+                <Link className="btn btn-ghost" href="/harita">{t(lang, "cta_open_map")}</Link>
               </div>
             </>
           ) : (
             <>
-              <p>Aramıza katıl, ilk rotanı paylaş ve Türkiye&apos;nin en aktif sürüş topluluğunun parçası ol.</p>
+              <p>{t(lang, "cta_guest_p")}</p>
               <div className="actions">
-                <Link className="btn btn-primary" href="/signup">Katıl</Link>
-                <Link className="btn btn-ghost" href="/harita">Önce rotalara bak</Link>
+                <Link className="btn btn-primary" href="/signup">{t(lang, "join")}</Link>
+                <Link className="btn btn-ghost" href="/harita">{t(lang, "cta_browse")}</Link>
               </div>
             </>
           )}
@@ -38,37 +39,37 @@ export function CtaBand({ authed = false }: { authed?: boolean }) {
   );
 }
 
-const COLS: { h: string; links: { label: string; href: string }[] }[] = [
-  {
-    h: "Keşfet",
-    links: [
-      { label: "Rotalar", href: "/rotalar" },
-      { label: "Harita", href: "/harita" },
-      { label: "Buluşmalar", href: "/bulusmalar" },
-      { label: "Liderlik", href: "/liderlik" },
-    ],
-  },
-  {
-    h: "Topluluk",
-    links: [
-      { label: "Rota paylaş", href: "/rotalar/yeni" },
-      { label: "Buluşma aç", href: "/bulusmalar/yeni" },
-      { label: "Kaydettiklerim", href: "/kaydedilenler" },
-      { label: "🌐 English", href: "/en" },
-      { label: "Hesap ayarları", href: "/ayarlar" },
-    ],
-  },
-  {
-    h: "Destek",
-    links: [
-      { label: "İletişim", href: "/iletisim" },
-      { label: "Gizlilik", href: "/gizlilik" },
-      { label: "Kullanım Şartları", href: "/sartlar" },
-    ],
-  },
-];
+export function Footer({ lang = "tr" }: { lang?: Lang }) {
+  const COLS = [
+    {
+      h: t(lang, "f_explore"),
+      links: [
+        { label: t(lang, "nav_routes"), href: "/rotalar" },
+        { label: t(lang, "nav_map"), href: "/harita" },
+        { label: t(lang, "nav_meetups"), href: "/bulusmalar" },
+        { label: t(lang, "nav_leaderboard"), href: "/liderlik" },
+      ],
+    },
+    {
+      h: t(lang, "f_community"),
+      links: [
+        { label: t(lang, "cta_share"), href: "/rotalar/yeni" },
+        { label: t(lang, "f_new_meetup"), href: "/bulusmalar/yeni" },
+        { label: t(lang, "saved"), href: "/kaydedilenler" },
+        { label: lang === "en" ? "🌐 Türkçe tanıtım" : "🌐 English", href: lang === "en" ? "/" : "/en" },
+        { label: t(lang, "f_account"), href: "/ayarlar" },
+      ],
+    },
+    {
+      h: t(lang, "f_support"),
+      links: [
+        { label: t(lang, "f_contact"), href: "/iletisim" },
+        { label: t(lang, "f_privacy"), href: "/gizlilik" },
+        { label: t(lang, "f_terms"), href: "/sartlar" },
+      ],
+    },
+  ];
 
-export function Footer() {
   return (
     <footer className="ft">
       <div className="wrap">
@@ -83,7 +84,7 @@ export function Footer() {
               </span>
               Ride<b>With</b>Ibrahim
             </Link>
-            <p>Bisiklet, moto, kamp ve keşif severler için topluluk rotası ve buluşma platformu.</p>
+            <p>{t(lang, "f_tagline")}</p>
           </div>
           {COLS.map((c) => (
             <div className="ft-col" key={c.h}>
@@ -96,7 +97,7 @@ export function Footer() {
         </div>
         <div className="ft-bottom">
           <span className="mono">© 2026 RideWithIbrahim.com</span>
-          <span>Türkiye&apos;de tasarlandı · Dünya için 🌍</span>
+          <span>{t(lang, "f_made")}</span>
         </div>
       </div>
     </footer>

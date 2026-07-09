@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { getLang } from "@/lib/i18n-server";
 import { Navbar } from "@/components/home/navbar";
 import { Footer } from "@/components/home/footer";
 import { ScrollReveal } from "@/components/shared/reveal";
@@ -26,11 +27,13 @@ export default async function MarketingLayout({
     unread = count ?? 0;
   }
 
+  const lang = await getLang();
+
   return (
     <>
-      <Navbar username={username} unread={unread} />
+      <Navbar username={username} unread={unread} lang={lang} />
       {children}
-      <Footer />
+      <Footer lang={lang} />
       <ScrollReveal />
       <Suspense fallback={null}>
         <WelcomeToast />

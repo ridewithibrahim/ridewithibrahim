@@ -6,6 +6,7 @@ import { CtaBand } from "@/components/home/footer";
 import { getFeaturedRoutes, getUpcomingEvents, getSiteStats, getHeroRoute } from "@/lib/queries";
 import { getMapRoutes } from "@/lib/map-data";
 import { createClient } from "@/lib/supabase/server";
+import { getLang } from "@/lib/i18n-server";
 
 export const metadata = {
   alternates: { canonical: "/", languages: { tr: "/", en: "/en" } },
@@ -22,6 +23,7 @@ export default async function HomePage() {
     supabase.auth.getUser(),
   ]);
   const authed = !!userRes.data.user;
+  const lang = await getLang();
 
   return (
     <>
@@ -29,7 +31,7 @@ export default async function HomePage() {
       <FeaturedRoutes routes={routes} />
       <MapPreview routes={mapRoutes} />
       <UpcomingEvents events={events} />
-      <CtaBand authed={authed} />
+      <CtaBand authed={authed} lang={lang} />
     </>
   );
 }

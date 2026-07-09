@@ -793,3 +793,10 @@ button.card-like:disabled { opacity: .7; }
   .pf-actions { margin-left: 0; flex-basis: 100%; justify-content: flex-start; margin-top: 4px; }
   .pf-actions .btn { flex: 1 1 auto; justify-content: center; }
 }
+
+/* dil degistirici */
+.lang-sw { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.lang-sw button { background: none; border: none; color: var(--ink-faint); font-size: 11.5px;
+  font-weight: 800; letter-spacing: .04em; padding: 6px 10px; cursor: pointer; transition: .15s; }
+.lang-sw button.on { background: rgba(242, 177, 76, .14); color: var(--amber); }
+.lang-sw button:hover:not(.on) { color: var(--ink); }

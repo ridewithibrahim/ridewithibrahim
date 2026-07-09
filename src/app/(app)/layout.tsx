@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getLang } from "@/lib/i18n-server";
 import { Navbar } from "@/components/home/navbar";
 
 export default async function AppLayout({
@@ -22,9 +23,11 @@ export default async function AppLayout({
     unread = count ?? 0;
   }
 
+  const lang = await getLang();
+
   return (
     <>
-      <Navbar username={username} unread={unread} />
+      <Navbar username={username} unread={unread} lang={lang} />
       {children}
     </>
   );
