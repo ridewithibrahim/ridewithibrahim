@@ -1,19 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { type Lang } from "@/lib/i18n";
 import type mapboxglType from "mapbox-gl";
 import type { Map as MbMap, Marker } from "mapbox-gl";
 
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 /** Haritaya tıklayarak rota çizme. Her tıklama bir nokta ekler. */
-export function RouteDrawMap({
-  points,
-  onAdd,
-}: {
-  points: [number, number][];
-  onAdd: (p: [number, number]) => void;
-}) {
+export function RouteDrawMap({ points,
+  onAdd, lang = "tr" }: { points: [number, number][];
+  onAdd: (p: [number, number]) => void; lang?: Lang }) {
+  const L = (tr: string, en: string) => (lang === "en" ? en : tr);
   const mapEl = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MbMap | null>(null);
   const glRef = useRef<typeof mapboxglType | null>(null);
@@ -113,7 +111,7 @@ export function RouteDrawMap({
   // Konumuma uç — çizime kendi mahallenden başla
   function locate() {
     if (!("geolocation" in navigator)) {
-      setLocErr("Tarayıcın konum özelliğini desteklemiyor.");
+      setLocErr(L("Tarayıcın konum özelliğini desteklemiyor.", "Your browser doesn't support location."));
       return;
     }
     setLocBusy(true);
@@ -134,7 +132,7 @@ export function RouteDrawMap({
       },
       () => {
         setLocBusy(false);
-        setLocErr("Konum alınamadı — tarayıcıdan konum izni vermen gerekiyor.");
+        setLocErr(L("Konum alınamadı — tarayıcıdan konum izni vermen gerekiyor.", "Couldn't get your location — please allow location access."));
       },
       { enableHighAccuracy: true, timeout: 10000 },
     );
@@ -144,7 +142,7 @@ export function RouteDrawMap({
     <div className="draw-wrap">
       <div ref={mapEl} className="rf-map draw-map" />
       <button type="button" className="draw-loc-btn" onClick={locate} disabled={locBusy}>
-        {locBusy ? "Konum alınıyor…" : "📍 Konumum"}
+        {locBusy ? L("Konum alınıyor…", "Getting location…") : L("📍 Konumum", "📍 My location")}
       </button>
       {locErr && <span className="draw-loc-err">{locErr}</span>}
     </div>

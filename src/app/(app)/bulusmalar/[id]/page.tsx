@@ -160,7 +160,7 @@ export default async function EventDetailPage({
           )}
           {(user?.id === ev.host_id || isAdmin) && (
             <span className="owner-actions">
-              <DeleteEventButton eventId={ev.id} />
+              <DeleteEventButton eventId={ev.id} lang={lang} />
             </span>
           )}
         </div>

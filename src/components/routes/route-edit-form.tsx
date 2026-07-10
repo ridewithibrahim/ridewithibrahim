@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { type Lang, typeName, diffName } from "@/lib/i18n";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createClient } from "@/lib/supabase/client";
 import { routeFormSchema, type RouteFormValues } from "@/lib/validations/route";
-import { ROUTE_TYPES, DIFFICULTY } from "@/lib/types";
+import { DIFFICULTY } from "@/lib/types";
 
 const TYPES = ["yol", "mtb", "moto", "kamp"] as const;
 const DIFFS = ["kolay", "orta", "zor", "uzman"] as const;
@@ -21,7 +22,8 @@ export interface RouteEditInitial {
   thumbnailUrl: string | null;
 }
 
-export function RouteEditForm({ initial }: { initial: RouteEditInitial }) {
+export function RouteEditForm({ initial, lang = "tr" }: { initial: RouteEditInitial; lang?: Lang }) {
+  const L = (tr: string, en: string) => (lang === "en" ? en : tr);
   const router = useRouter();
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>(initial.thumbnailUrl ?? "");
@@ -52,8 +54,8 @@ export function RouteEditForm({ initial }: { initial: RouteEditInitial }) {
     setPhotoError("");
     const f = e.target.files?.[0];
     if (!f) return;
-    if (!f.type.startsWith("image/")) return setPhotoError("Lütfen bir görsel dosyası seç.");
-    if (f.size > 5 * 1024 * 1024) return setPhotoError("Fotoğraf 5 MB'dan büyük olamaz.");
+    if (!f.type.startsWith("image/")) return setPhotoError(L("Lütfen bir görsel dosyası seç.", "Please choose an image file."));
+    if (f.size > 5 * 1024 * 1024) return setPhotoError(L("Fotoğraf 5 MB'dan büyük olamaz.", "The photo can't exceed 5 MB."));
     setPhoto(f);
     setPhotoPreview(URL.createObjectURL(f));
   }
@@ -66,7 +68,7 @@ export function RouteEditForm({ initial }: { initial: RouteEditInitial }) {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error("Oturum bulunamadı, tekrar giriş yap.");
+      if (!user) throw new Error(L("Oturum bulunamadı, tekrar giriş yap.", "Session not found — please log in again."));
 
       // Yeni fotoğraf seçildiyse yükle
       let thumbnail_url: string | undefined;
@@ -105,7 +107,7 @@ export function RouteEditForm({ initial }: { initial: RouteEditInitial }) {
     <form className="rf" onSubmit={handleSubmit(onSubmit)}>
       <div className="rf-block">
         <label className="field">
-          <span>Başlık</span>
+          <span>{L("Başlık", "Title")}</span>
           <input {...register("title")} />
           {errors.title && <em className="field-error">{errors.title.message}</em>}
         </label>
@@ -113,7 +115,7 @@ export function RouteEditForm({ initial }: { initial: RouteEditInitial }) {
 
       <div className="rf-row">
         <div>
-          <label className="rf-label">Tür</label>
+          <label className="rf-label">{L("Tür", "Type")}</label>
           <div className="chips">
             {TYPES.map((t) => (
               <button
@@ -122,13 +124,13 @@ export function RouteEditForm({ initial }: { initial: RouteEditInitial }) {
                 className={`chip${routeType === t ? " active" : ""}`}
                 onClick={() => setValue("routeType", t, { shouldValidate: true })}
               >
-                {ROUTE_TYPES[t].label}
+                {typeName(lang, t)}
               </button>
             ))}
           </div>
         </div>
         <div>
-          <label className="rf-label">Zorluk</label>
+          <label className="rf-label">{L("Zorluk", "Difficulty")}</label>
           <div className="chips">
             {DIFFS.map((d) => (
               <button
@@ -137,7 +139,7 @@ export function RouteEditForm({ initial }: { initial: RouteEditInitial }) {
                 className={`chip d-${DIFFICULTY[d].className}${difficulty === d ? " active" : ""}`}
                 onClick={() => setValue("difficulty", d, { shouldValidate: true })}
               >
-                {DIFFICULTY[d].label}
+                {diffName(lang, d)}
               </button>
             ))}
           </div>
@@ -146,21 +148,21 @@ export function RouteEditForm({ initial }: { initial: RouteEditInitial }) {
 
       <div className="rf-block">
         <label className="field">
-          <span>İl</span>
+          <span>{L("İl", "Region")}</span>
           <input {...register("province")} />
           {errors.province && <em className="field-error">{errors.province.message}</em>}
         </label>
       </div>
 
       <div className="rf-block">
-        <label className="rf-label">Fotoğraf (değiştirmek istersen)</label>
+        <label className="rf-label">{L("Fotoğraf (değiştirmek istersen)", "Photo (replace if you like)")}</label>
         <label className="gpx-drop photo-drop">
           <input type="file" accept="image/*" onChange={onPhoto} hidden />
           {photoPreview ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={photoPreview} alt="" className="photo-preview" />
           ) : (
-            <span style={{ padding: "26px 20px" }}>Yeni bir kare seç</span>
+            <span style={{ padding: "26px 20px" }}>{L("Yeni bir kare seç", "Choose a new shot")}</span>
           )}
         </label>
         {photoError && <p className="field-error">{photoError}</p>}
@@ -168,7 +170,7 @@ export function RouteEditForm({ initial }: { initial: RouteEditInitial }) {
 
       <div className="rf-block">
         <label className="field">
-          <span>Açıklama</span>
+          <span>{L("Açıklama", "Description")}</span>
           <textarea rows={4} {...register("description")} />
         </label>
       </div>
@@ -176,7 +178,7 @@ export function RouteEditForm({ initial }: { initial: RouteEditInitial }) {
       {submitError && <p className="field-error">{submitError}</p>}
 
       <button className="btn btn-primary" type="submit" disabled={saving} style={{ justifyContent: "center" }}>
-        {saving ? "Kaydediliyor…" : "Değişiklikleri kaydet"}
+        {saving ? L("Kaydediliyor…", "Saving…") : L("Değişiklikleri kaydet", "Save changes")}
       </button>
     </form>
   );

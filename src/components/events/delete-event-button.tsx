@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { type Lang } from "@/lib/i18n";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-export function DeleteEventButton({ eventId }: { eventId: string }) {
+export function DeleteEventButton({ eventId, lang = "tr" }: { eventId: string; lang?: Lang }) {
+  const L = (tr: string, en: string) => (lang === "en" ? en : tr);
   const router = useRouter();
   const [arming, setArming] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -27,19 +29,19 @@ export function DeleteEventButton({ eventId }: { eventId: string }) {
   if (!arming) {
     return (
       <button type="button" className="btn-del" onClick={() => setArming(true)}>
-        Buluşmayı iptal et
+        {L("Buluşmayı iptal et", "Cancel meetup")}
       </button>
     );
   }
 
   return (
     <span className="del-confirm">
-      <span>Emin misin?</span>
+      <span>{L("Emin misin?", "Are you sure?")}</span>
       <button type="button" className="btn-del solid" onClick={doDelete} disabled={busy}>
-        {busy ? "İptal ediliyor…" : "Evet, iptal et"}
+        {busy ? L("İptal ediliyor…", "Cancelling…") : L("Evet, iptal et", "Yes, cancel")}
       </button>
       <button type="button" className="btn btn-ghost btn-sm" onClick={() => setArming(false)} disabled={busy}>
-        Vazgeç
+        {L("Vazgeç", "Keep it")}
       </button>
       {err && <em className="field-error">{err}</em>}
     </span>

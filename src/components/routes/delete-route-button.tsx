@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { type Lang } from "@/lib/i18n";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-export function DeleteRouteButton({ routeId }: { routeId: string }) {
+export function DeleteRouteButton({ routeId, lang = "tr" }: { routeId: string; lang?: Lang }) {
+  const L = (tr: string, en: string) => (lang === "en" ? en : tr);
   const router = useRouter();
   const [arming, setArming] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -27,19 +29,19 @@ export function DeleteRouteButton({ routeId }: { routeId: string }) {
   if (!arming) {
     return (
       <button type="button" className="btn-del" onClick={() => setArming(true)}>
-        Rotayı sil
+        {L("Rotayı sil", "Delete route")}
       </button>
     );
   }
 
   return (
     <span className="del-confirm">
-      <span>Emin misin?</span>
+      <span>{L("Emin misin?", "Are you sure?")}</span>
       <button type="button" className="btn-del solid" onClick={doDelete} disabled={busy}>
-        {busy ? "Siliniyor…" : "Evet, sil"}
+        {busy ? L("Siliniyor…", "Deleting…") : L("Evet, sil", "Yes, delete")}
       </button>
       <button type="button" className="btn btn-ghost btn-sm" onClick={() => setArming(false)} disabled={busy}>
-        Vazgeç
+        {L("Vazgeç", "Cancel")}
       </button>
       {err && <em className="field-error">{err}</em>}
     </span>

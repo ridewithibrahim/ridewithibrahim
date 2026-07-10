@@ -1,16 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { type Lang, typeName } from "@/lib/i18n";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createClient } from "@/lib/supabase/client";
 import { eventFormSchema, type EventFormValues } from "@/lib/validations/event";
-import { ROUTE_TYPES } from "@/lib/types";
 
 const TYPES = ["yol", "mtb", "moto", "kamp"] as const;
 
-export function EventForm() {
+export function EventForm({ lang = "tr" }: { lang?: Lang } = {}) {
+  const L = (tr: string, en: string) => (lang === "en" ? en : tr);
   const router = useRouter();
   const [submitError, setSubmitError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -32,7 +33,7 @@ export function EventForm() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error("Oturum bulunamadı, tekrar giriş yap.");
+      if (!user) throw new Error(L("Oturum bulunamadı, tekrar giriş yap.", "Session not found — please log in again."));
 
       const eventArgs = {
         p_title: values.title,
@@ -49,7 +50,7 @@ export function EventForm() {
       router.push(`/bulusmalar/${id}`);
       router.refresh();
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : "Kayıt sırasında hata oluştu.");
+      setSubmitError(err instanceof Error ? err.message : L("Kayıt sırasında hata oluştu.", "Something went wrong while saving."));
       setSaving(false);
     }
   }
@@ -58,14 +59,14 @@ export function EventForm() {
     <form className="rf" onSubmit={handleSubmit(onSubmit)}>
       <div className="rf-block">
         <label className="field">
-          <span>Başlık</span>
-          <input placeholder="Pazar Sabahı Boğaz Turu" {...register("title")} />
+          <span>{L("Başlık", "Title")}</span>
+          <input placeholder={L("Pazar Sabahı Boğaz Turu", "Sunday morning group ride")} {...register("title")} />
           {errors.title && <em className="field-error">{errors.title.message}</em>}
         </label>
       </div>
 
       <div className="rf-block">
-        <label className="rf-label">Tür</label>
+        <label className="rf-label">{L("Tür", "Type")}</label>
         <div className="chips">
           {TYPES.map((t) => (
             <button
@@ -74,7 +75,7 @@ export function EventForm() {
               className={`chip${eventType === t ? " active" : ""}`}
               onClick={() => setValue("eventType", t, { shouldValidate: true })}
             >
-              {ROUTE_TYPES[t].label}
+              {typeName(lang, t)}
             </button>
           ))}
         </div>
@@ -83,12 +84,12 @@ export function EventForm() {
 
       <div className="rf-row">
         <label className="field">
-          <span>İl</span>
+          <span>{L("İl", "Region")}</span>
           <input placeholder="İstanbul" {...register("province")} />
           {errors.province && <em className="field-error">{errors.province.message}</em>}
         </label>
         <label className="field">
-          <span>Buluşma yeri</span>
+          <span>{L("Buluşma yeri", "Meeting point")}</span>
           <input placeholder="Bebek Sahili" {...register("location")} />
           {errors.location && <em className="field-error">{errors.location.message}</em>}
         </label>
@@ -101,7 +102,7 @@ export function EventForm() {
           {errors.startsAt && <em className="field-error">{errors.startsAt.message}</em>}
         </label>
         <label className="field">
-          <span>Kapasite (opsiyonel)</span>
+          <span>{L("Kapasite (opsiyonel)", "Capacity (optional)")}</span>
           <input type="number" min={1} placeholder="30" {...register("capacity")} />
           {errors.capacity && <em className="field-error">{errors.capacity.message}</em>}
         </label>
@@ -109,15 +110,15 @@ export function EventForm() {
 
       <div className="rf-block">
         <label className="field">
-          <span>Açıklama (opsiyonel)</span>
-          <textarea rows={4} placeholder="Rota, tempo, buluşma detayları…" {...register("description")} />
+          <span>{L("Açıklama (opsiyonel)", "Description (optional)")}</span>
+          <textarea rows={4} placeholder={L("Rota, tempo, buluşma detayları…", "Route, pace, meetup details…")} {...register("description")} />
         </label>
       </div>
 
       {submitError && <p className="field-error">{submitError}</p>}
 
       <button className="btn btn-primary" type="submit" disabled={saving} style={{ justifyContent: "center" }}>
-        {saving ? "Oluşturuluyor…" : "Buluşmayı oluştur"}
+        {saving ? L("Oluşturuluyor…", "Creating…") : L("Buluşmayı oluştur", "Create meetup")}
       </button>
     </form>
   );

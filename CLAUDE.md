@@ -129,7 +129,7 @@ client bileşenlere `lang` prop geçirir (her yerde `lang = "tr"` varsayılanı 
 kırılmaz). YENİ METİN EKLERKEN: sözlüğe çift ekle, `t()` ile kullan.
 Fazlar: 2a çerçeve ✅ · 2b ana sayfa ✅ · 2c keşif (harita/rotalar/detay) ✅ · 2d sosyal katman
 (profil+rozetler, bildirim, mesajlaşma, yorumlar, listeler, buluşma başlıkları) ✅ ·
-**2e KALDI:** formlar (rota paylaş/çiz, buluşma aç, ayarlar), buluşma Katıl butonu + EventCard içi.
+2e formlar (rota paylaş/çiz/düzenle, buluşma aç, ayarlar, silme onayları) ✅ — SİTE %100 İKİ DİLLİ. Not: zod doğrulama mesajları TR kaldı (kabul edilen istisna); formlarda desen: bileşen içi `L(tr,en)` yardımcısı.
 Ayrıca /en statik İngilizce tanıtım sayfası + hreflang mevcut.
 
 ## Tasarım kimliği

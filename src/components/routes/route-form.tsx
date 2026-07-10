@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { type Lang, typeName, diffName } from "@/lib/i18n";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,7 +9,7 @@ import type { Map as MbMap } from "mapbox-gl";
 import { createClient } from "@/lib/supabase/client";
 import { parseGpx, type ParsedGpx } from "@/lib/gpx";
 import { routeFormSchema, type RouteFormValues } from "@/lib/validations/route";
-import { ROUTE_TYPES, DIFFICULTY, km, formatDuration } from "@/lib/types";
+import { DIFFICULTY, km, formatDuration } from "@/lib/types";
 import { RouteDrawMap } from "@/components/routes/route-draw-map";
 
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
@@ -28,7 +29,8 @@ function havKm(a: [number, number], b: [number, number]) {
   return 2 * R * Math.asin(Math.sqrt(s));
 }
 
-export function RouteForm() {
+export function RouteForm({ lang = "tr" }: { lang?: Lang } = {}) {
+  const L = (tr: string, en: string) => (lang === "en" ? en : tr);
   const router = useRouter();
   const [gpx, setGpx] = useState<ParsedGpx | null>(null);
   const [fileName, setFileName] = useState<string>("");
@@ -70,7 +72,7 @@ export function RouteForm() {
       if (parsed.name) setValue("title", parsed.name, { shouldValidate: true });
     } catch (err) {
       setGpx(null);
-      setParseError(err instanceof Error ? err.message : "GPX işlenemedi.");
+      setParseError(err instanceof Error ? err.message : L("GPX işlenemedi.", "Couldn't parse the GPX file."));
     }
   }
 
@@ -79,11 +81,11 @@ export function RouteForm() {
     const f = e.target.files?.[0];
     if (!f) return;
     if (!f.type.startsWith("image/")) {
-      setPhotoError("Lütfen bir görsel dosyası seç (JPG, PNG, WebP).");
+      setPhotoError(L("Lütfen bir görsel dosyası seç (JPG, PNG, WebP).", "Please choose an image file (JPG, PNG, WebP)."));
       return;
     }
     if (f.size > 5 * 1024 * 1024) {
-      setPhotoError("Fotoğraf 5 MB'dan büyük olamaz.");
+      setPhotoError(L("Fotoğraf 5 MB'dan büyük olamaz.", "The photo can't exceed 5 MB."));
       return;
     }
     setPhoto(f);
@@ -156,11 +158,11 @@ export function RouteForm() {
   async function onSubmit(values: RouteFormValues) {
     setSubmitError("");
     if (mode === "gpx" && (!gpx || !file)) {
-      setSubmitError("Önce bir GPX dosyası yükle.");
+      setSubmitError(L("Önce bir GPX dosyası yükle.", "Upload a GPX file first."));
       return;
     }
     if (mode === "draw" && drawn.length < 2) {
-      setSubmitError("Haritaya tıklayarak en az 2 nokta ekle.");
+      setSubmitError(L("Haritaya tıklayarak en az 2 nokta ekle.", "Click the map to add at least 2 points."));
       return;
     }
     setSaving(true);
@@ -169,7 +171,7 @@ export function RouteForm() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error("Oturum bulunamadı, tekrar giriş yap.");
+      if (!user) throw new Error(L("Oturum bulunamadı, tekrar giriş yap.", "Session not found — please log in again."));
 
       // 1) Rota verisini kaynağına göre hazırla
       let gpxUrl = "";
@@ -234,7 +236,7 @@ export function RouteForm() {
       router.push(`/rotalar/${id}`);
       router.refresh();
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : "Kayıt sırasında hata oluştu.");
+      setSubmitError(err instanceof Error ? err.message : L("Kayıt sırasında hata oluştu.", "Something went wrong while saving."));
       setSaving(false);
     }
   }
@@ -243,13 +245,13 @@ export function RouteForm() {
     <form className="rf" onSubmit={handleSubmit(onSubmit)}>
       {/* Rota kaynağı seçimi */}
       <div className="rf-block">
-        <label className="rf-label">Rota kaynağı</label>
+        <label className="rf-label">{L("Rota kaynağı", "Route source")}</label>
         <div className="chips">
           <button type="button" className={`chip${mode === "gpx" ? " active" : ""}`} onClick={() => setMode("gpx")}>
-            GPX dosyası yükle
+            {L("GPX dosyası yükle", "Upload a GPX file")}
           </button>
           <button type="button" className={`chip${mode === "draw" ? " active" : ""}`} onClick={() => setMode("draw")}>
-            🖊 Haritada çiz
+            {L("🖊 Haritada çiz", "🖊 Draw on the map")}
           </button>
         </div>
       </div>
@@ -258,21 +260,21 @@ export function RouteForm() {
         <>
           {/* GPX upload */}
           <div className="rf-block">
-            <label className="rf-label">GPX dosyası</label>
+            <label className="rf-label">{L("GPX dosyası", "GPX file")}</label>
             <label className="gpx-drop">
               <input type="file" accept=".gpx,application/gpx+xml,application/xml" onChange={onFile} hidden />
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 15V3M7 8l5-5 5 5" /><path d="M5 15v4a2 2 0 002 2h10a2 2 0 002-2v-4" />
               </svg>
-              <span>{fileName || "GPX dosyanı seç veya buraya sürükle"}</span>
+              <span>{fileName || L("GPX dosyanı seç veya buraya sürükle", "Choose your GPX or drop it here")}</span>
             </label>
             {parseError && <p className="field-error">{parseError}</p>}
 
             {gpx && (
               <div className="gpx-stats">
-                <div><span>Mesafe</span><b>{km(gpx.distanceM)} km</b></div>
-                <div><span>İrtifa</span><b>↑ {gpx.elevationGainM.toLocaleString("tr-TR")} m</b></div>
-                <div><span>Süre</span><b>{gpx.durationMin ? formatDuration(gpx.durationMin) : "—"}</b></div>
+                <div><span>{L("Mesafe", "Distance")}</span><b>{km(gpx.distanceM)} km</b></div>
+                <div><span>{L("İrtifa", "Elevation")}</span><b>↑ {gpx.elevationGainM.toLocaleString("tr-TR")} m</b></div>
+                <div><span>{L("Süre", "Time")}</span><b>{gpx.durationMin ? formatDuration(gpx.durationMin) : "—"}</b></div>
                 <div><span>Nokta</span><b>{gpx.coords.length}</b></div>
               </div>
             )}
@@ -281,36 +283,36 @@ export function RouteForm() {
           {/* Map preview */}
           {gpx && (
             <div className="rf-block">
-              <label className="rf-label">Önizleme</label>
+              <label className="rf-label">{L("Önizleme", "Preview")}</label>
               {TOKEN ? (
                 <div className="rf-map" ref={mapEl} />
               ) : (
-                <p className="rf-hint">Harita önizlemesi için Mapbox token gerekli.</p>
+                <p className="rf-hint">{L("Harita önizlemesi için Mapbox token gerekli.", "A Mapbox token is required for the preview.")}</p>
               )}
             </div>
           )}
         </>
       ) : (
         <div className="rf-block">
-          <label className="rf-label">Rotanı çiz — haritaya tıklayarak nokta ekle</label>
+          <label className="rf-label">{L("Rotanı çiz — haritaya tıklayarak nokta ekle", "Draw your route — click the map to add points")}</label>
           {TOKEN ? (
-            <RouteDrawMap points={drawn} onAdd={(p) => setDrawn((d) => [...d, p])} />
+            <RouteDrawMap lang={lang} points={drawn} onAdd={(p) => setDrawn((d) => [...d, p])} />
           ) : (
-            <p className="rf-hint">Harita için Mapbox token gerekli.</p>
+            <p className="rf-hint">{L("Harita için Mapbox token gerekli.", "A Mapbox token is required for the map.")}</p>
           )}
           <div className="draw-tools">
             <button type="button" className="chip" onClick={() => setDrawn((d) => d.slice(0, -1))} disabled={!drawn.length}>
-              ↶ Geri al
+              ↶ {L("Geri al", "Undo")}
             </button>
             <button type="button" className="chip" onClick={() => setDrawn([])} disabled={!drawn.length}>
-              Temizle
+              {L("Temizle", "Clear")}
             </button>
             <span className="draw-stat">
-              <b>{km(drawDistM)}</b> km · {drawn.length} nokta
+              <b>{km(drawDistM)}</b> km · {drawn.length} {L("nokta", "points")}
             </span>
           </div>
           <label className="field" style={{ marginTop: 12 }}>
-            <span>Toplam tırmanış (metre, opsiyonel)</span>
+            <span>{L("Toplam tırmanış (metre, opsiyonel)", "Total climb (metres, optional)")}</span>
             <input
               type="number"
               min={0}
@@ -319,13 +321,13 @@ export function RouteForm() {
               onChange={(e) => setDrawElev(e.target.value)}
             />
           </label>
-          <p className="rf-hint">Süre, rota türüne ve mesafeye göre otomatik tahmin edilir.</p>
+          <p className="rf-hint">{L("Süre, rota türüne ve mesafeye göre otomatik tahmin edilir.", "Time is estimated from route type and distance.")}</p>
         </div>
       )}
 
       {/* Photo (optional) */}
       <div className="rf-block">
-        <label className="rf-label">Fotoğraf (opsiyonel)</label>
+        <label className="rf-label">{L("Fotoğraf (opsiyonel)", "Photo (optional)")}</label>
         <label className="gpx-drop photo-drop">
           <input type="file" accept="image/*" onChange={onPhoto} hidden />
           {photoPreview ? (
@@ -337,7 +339,7 @@ export function RouteForm() {
                 <rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="9" cy="10" r="1.6" />
                 <path d="M21 15l-4.5-4.5L9 18" />
               </svg>
-              <span>Rotandan bir kare ekle — kartlarda görünür</span>
+              <span>{L("Rotandan bir kare ekle — kartlarda görünür", "Add a shot from your ride — shown on cards")}</span>
             </>
           )}
         </label>
@@ -347,14 +349,14 @@ export function RouteForm() {
       {/* Details */}
       <div className="rf-block">
         <label className="field">
-          <span>Başlık</span>
+          <span>{L("Başlık", "Title")}</span>
           <input placeholder="Kartepe Zirve Tırmanışı" {...register("title")} />
           {errors.title && <em className="field-error">{errors.title.message}</em>}
         </label>
       </div>
 
       <div className="rf-block">
-        <label className="rf-label">Tür</label>
+        <label className="rf-label">{L("Tür", "Type")}</label>
         <div className="chips">
           {TYPES.map((t) => (
             <button
@@ -363,7 +365,7 @@ export function RouteForm() {
               className={`chip${routeType === t ? " active" : ""}`}
               onClick={() => setValue("routeType", t, { shouldValidate: true })}
             >
-              {ROUTE_TYPES[t].label}
+              {typeName(lang, t)}
             </button>
           ))}
         </div>
@@ -371,7 +373,7 @@ export function RouteForm() {
       </div>
 
       <div className="rf-block">
-        <label className="rf-label">Zorluk</label>
+        <label className="rf-label">{L("Zorluk", "Difficulty")}</label>
         <div className="chips">
           {DIFFS.map((d) => (
             <button
@@ -380,7 +382,7 @@ export function RouteForm() {
               className={`chip d-${DIFFICULTY[d].className}${difficulty === d ? " active" : ""}`}
               onClick={() => setValue("difficulty", d, { shouldValidate: true })}
             >
-              {DIFFICULTY[d].label}
+              {diffName(lang, d)}
             </button>
           ))}
         </div>
@@ -389,7 +391,7 @@ export function RouteForm() {
 
       <div className="rf-block">
         <label className="field">
-          <span>İl</span>
+          <span>{L("İl", "Region")}</span>
           <input placeholder="Kocaeli" {...register("province")} />
           {errors.province && <em className="field-error">{errors.province.message}</em>}
         </label>
@@ -397,15 +399,15 @@ export function RouteForm() {
 
       <div className="rf-block">
         <label className="field">
-          <span>Açıklama (opsiyonel)</span>
-          <textarea rows={4} placeholder="Rota hakkında notlar, dikkat edilecekler…" {...register("description")} />
+          <span>{L("Açıklama (opsiyonel)", "Description (optional)")}</span>
+          <textarea rows={4} placeholder={L("Rota hakkında notlar, dikkat edilecekler…", "Notes about the route, things to watch for…")} {...register("description")} />
         </label>
       </div>
 
       {submitError && <p className="field-error">{submitError}</p>}
 
       <button className="btn btn-primary" type="submit" disabled={saving} style={{ justifyContent: "center" }}>
-        {saving ? "Kaydediliyor…" : "Rotayı yayınla"}
+        {saving ? L("Kaydediliyor…", "Saving…") : L("Rotayı yayınla", "Publish route")}
       </button>
     </form>
   );

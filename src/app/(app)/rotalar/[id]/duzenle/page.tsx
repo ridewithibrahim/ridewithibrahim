@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getLang } from "@/lib/i18n-server";
 import { RouteEditForm, type RouteEditInitial } from "@/components/routes/route-edit-form";
 
 export const metadata = { title: "Rotayı düzenle — RideWithIbrahim" };
@@ -35,6 +36,8 @@ export default async function EditRoutePage({
   } = await supabase.auth.getUser();
   if (!user || user.id !== data.user_id) redirect(`/rotalar/${id}`);
 
+  const lang = await getLang();
+
   const initial: RouteEditInitial = {
     id: data.id,
     title: data.title,
@@ -49,11 +52,11 @@ export default async function EditRoutePage({
     <main className="rf-page">
       <div className="wrap" style={{ maxWidth: 720 }}>
         <div className="rf-head">
-          <span className="eyebrow">Düzenle</span>
+          <span className="eyebrow">{lang === "en" ? "Edit" : "Düzenle"}</span>
           <h1>{data.title}</h1>
-          <p>Başlık, tür, zorluk, il, fotoğraf ve açıklamayı güncelleyebilirsin. Rota çizgisi (parkur) değişmez.</p>
+          <p>{lang === "en" ? "You can update the title, type, difficulty, region, photo and description. The route line itself doesn't change." : "Başlık, tür, zorluk, il, fotoğraf ve açıklamayı güncelleyebilirsin. Rota çizgisi (parkur) değişmez."}</p>
         </div>
-        <RouteEditForm initial={initial} />
+        <RouteEditForm lang={lang} initial={initial} />
       </div>
     </main>
   );

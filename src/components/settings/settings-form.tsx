@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { type Lang } from "@/lib/i18n";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -12,7 +13,8 @@ export interface ProfileInitial {
   avatar_url: string | null;
 }
 
-export function SettingsForm({ initial }: { initial: ProfileInitial }) {
+export function SettingsForm({ initial, lang = "tr" }: { initial: ProfileInitial; lang?: Lang }) {
+  const L = (tr: string, en: string) => (lang === "en" ? en : tr);
   const router = useRouter();
   const supabase = createClient();
 
@@ -36,8 +38,8 @@ export function SettingsForm({ initial }: { initial: ProfileInitial }) {
     setPErr("");
     const f = e.target.files?.[0];
     if (!f) return;
-    if (!f.type.startsWith("image/")) return setPErr("Lütfen bir görsel seç.");
-    if (f.size > 3 * 1024 * 1024) return setPErr("Avatar 3 MB'dan büyük olamaz.");
+    if (!f.type.startsWith("image/")) return setPErr(L("Lütfen bir görsel seç.", "Please choose an image."));
+    if (f.size > 3 * 1024 * 1024) return setPErr(L("Avatar 3 MB'dan büyük olamaz.", "The avatar can't exceed 3 MB."));
     setAvatarFile(f);
     setAvatarPreview(URL.createObjectURL(f));
   }
@@ -51,7 +53,7 @@ export function SettingsForm({ initial }: { initial: ProfileInitial }) {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error("Oturum bulunamadı.");
+      if (!user) throw new Error(L("Oturum bulunamadı.", "Session not found."));
 
       let avatar_url: string | undefined;
       if (avatarFile) {
@@ -75,7 +77,7 @@ export function SettingsForm({ initial }: { initial: ProfileInitial }) {
         .eq("id", user.id);
       if (error) throw error;
 
-      setPMsg("Profil güncellendi ✓");
+      setPMsg(L("Profil güncellendi ✓", "Profile updated ✓"));
       router.refresh();
     } catch (err) {
       setPErr(err instanceof Error ? err.message : "Kaydedilemedi.");
@@ -87,12 +89,12 @@ export function SettingsForm({ initial }: { initial: ProfileInitial }) {
     e.preventDefault();
     setSMsg("");
     setSErr("");
-    if (password.length < 8) return setSErr("Şifre en az 8 karakter olmalı.");
+    if (password.length < 8) return setSErr(L("Şifre en az 8 karakter olmalı.", "Password must be at least 8 characters."));
     setSSaving(true);
     const { error } = await supabase.auth.updateUser({ password });
     if (error) setSErr(error.message);
     else {
-      setSMsg("Şifren güncellendi ✓");
+      setSMsg(L("Şifren güncellendi ✓", "Password updated ✓"));
       setPassword("");
     }
     setSSaving(false);
@@ -114,33 +116,33 @@ export function SettingsForm({ initial }: { initial: ProfileInitial }) {
             )}
             <label className="btn btn-ghost btn-sm" style={{ cursor: "pointer" }}>
               <input type="file" accept="image/*" onChange={onAvatar} hidden />
-              Fotoğraf seç
+              {L("Fotoğraf seç", "Choose photo")}
             </label>
           </div>
         </div>
 
         <div className="rf-block">
           <label className="field">
-            <span>Kullanıcı adı</span>
+            <span>{L("Kullanıcı adı", "Username")}</span>
             <input value={`@${initial.username}`} disabled />
           </label>
         </div>
 
         <div className="rf-row">
           <label className="field">
-            <span>Ad Soyad</span>
+            <span>{L("Ad Soyad", "Full name")}</span>
             <input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="İbrahim ..." maxLength={80} />
           </label>
           <label className="field">
-            <span>Şehir</span>
+            <span>{L("Şehir", "City")}</span>
             <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="İstanbul" maxLength={60} />
           </label>
         </div>
 
         <div className="rf-block">
           <label className="field">
-            <span>Hakkında</span>
-            <textarea rows={3} value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Kısaca kendinden bahset…" maxLength={300} />
+            <span>{L("Hakkında", "About")}</span>
+            <textarea rows={3} value={bio} onChange={(e) => setBio(e.target.value)} placeholder={L("Kısaca kendinden bahset…", "A few words about you…")} maxLength={300} />
           </label>
         </div>
 
@@ -155,7 +157,7 @@ export function SettingsForm({ initial }: { initial: ProfileInitial }) {
       <form className="rf settings-pass" onSubmit={changePassword}>
         <div className="rf-block">
           <label className="field">
-            <span>Yeni şifre</span>
+            <span>{L("Yeni şifre", "New password")}</span>
             <input
               type="password"
               value={password}

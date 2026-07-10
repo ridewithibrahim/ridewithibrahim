@@ -252,7 +252,7 @@ export default async function RouteDetailPage({
               {isOwner && (
                 <Link className="btn btn-ghost btn-sm" href={`/rotalar/${route.id}/duzenle`}>{tr(lang, "edit")}</Link>
               )}
-              <DeleteRouteButton routeId={route.id} />
+              <DeleteRouteButton routeId={route.id} lang={lang} />
             </span>
           )}
         </div>
