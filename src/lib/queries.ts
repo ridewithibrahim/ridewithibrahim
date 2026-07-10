@@ -118,6 +118,24 @@ export async function getRoutes(f: RouteFilters = {}): Promise<RouteSummary[]> {
   }
 }
 
+/** Verilen id listesindeki rotaları (verilen sırayla) getirir. */
+export async function getRoutesByIds(ids: string[]): Promise<RouteSummary[]> {
+  if (!ids.length) return [];
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("routes")
+      .select(ROUTE_COLS)
+      .in("id", ids);
+    if (error || !data) return [];
+    const list = await enrich(supabase, data as RouteRow[]);
+    const order = new Map(ids.map((id, i) => [id, i]));
+    return list.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+  } catch {
+    return [];
+  }
+}
+
 export async function getUserRoutes(userId: string): Promise<RouteSummary[]> {
   try {
     const supabase = await createClient();

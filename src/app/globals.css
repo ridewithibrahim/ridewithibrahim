@@ -814,3 +814,11 @@ button.card-like:disabled { opacity: .7; }
   .pf-stats { grid-template-columns: repeat(2, 1fr); }
 }
 .pf-stats { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+
+/* tamamlama butonu — spruce vurgulu, gozden kacmaz */
+.btn-complete { border: 1.5px solid rgba(95, 184, 163, .55); color: var(--spruce);
+  background: rgba(95, 184, 163, .10); font-weight: 700; }
+.btn-complete:hover { border-color: var(--spruce); background: rgba(95, 184, 163, .18);
+  transform: translateY(-1px); box-shadow: 0 6px 18px rgba(95, 184, 163, .15); }
+.btn-complete.on { background: var(--spruce); border-color: var(--spruce); color: #0c1512; }
+.btn-complete.on:hover { filter: brightness(1.06); }

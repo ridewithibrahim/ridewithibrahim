@@ -60,7 +60,7 @@ export function CompleteButton({
     <span className="complete-wrap">
       <button
         type="button"
-        className={`btn btn-sm ${done ? "btn-primary" : "btn-ghost"}`}
+        className={`btn btn-sm btn-complete${done ? " on" : ""}`}
         onClick={toggle}
         disabled={busy}
         aria-pressed={done}

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getUserRoutes } from "@/lib/queries";
+import { getUserRoutes, getRoutesByIds } from "@/lib/queries";
 import { RouteCard } from "@/components/home/route-card";
 import { km } from "@/lib/types";
 import { PlusIcon } from "@/components/home/icons";
@@ -63,6 +63,7 @@ export default async function ProfilePage({
     .from("route_completions")
     .select("route_id")
     .eq("user_id", profile.id)
+    .order("completed_at", { ascending: false })
     .returns<{ route_id: string }[]>();
   const compIds = (compRows ?? []).map((c) => c.route_id);
   let riddenKm = 0;
@@ -74,6 +75,7 @@ export default async function ProfilePage({
       .returns<{ distance_m: number }[]>();
     riddenKm = Math.round(((compRoutes ?? []).reduce((s, r) => s + r.distance_m, 0)) / 1000);
   }
+  const completedRoutes = await getRoutesByIds(compIds);
 
   const badges = computeBadges(routes);
   const next = getNextRank(totalRoutes, totalKm);
@@ -173,6 +175,22 @@ export default async function ProfilePage({
               <RouteCard key={r.id} route={r} lang={lang} />
             ))}
           </div>
+        )}
+
+        {completedRoutes.length > 0 && (
+          <>
+            <div className="sec-head" style={{ marginTop: 52 }}>
+              <div>
+                <span className="eyebrow">🏁 {t(lang, "stat_completed")}</span>
+                <h2>{completedRoutes.length} {t(lang, "routes_word")}</h2>
+              </div>
+            </div>
+            <div className="route-grid">
+              {completedRoutes.map((r) => (
+                <RouteCard key={`c-${r.id}`} route={r} lang={lang} />
+              ))}
+            </div>
+          </>
         )}
       </div>
     </main>
