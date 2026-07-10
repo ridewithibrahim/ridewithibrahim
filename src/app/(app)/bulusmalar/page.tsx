@@ -23,13 +23,13 @@ export default async function EventsPage() {
             <h2>{t(lang, "events_h2")}</h2>
           </div>
           <Link className="btn btn-primary btn-sm" href="/bulusmalar/yeni">
-            <PlusIcon width={16} height={16} /> Buluşma aç
+            <PlusIcon width={16} height={16} /> {t(lang, "f_new_meetup")}
           </Link>
         </div>
 
         {events.length === 0 ? (
           <div className="empty" style={{ padding: "60px 20px" }}>
-            Yaklaşan buluşma yok.<br />İlk buluşmayı sen aç.
+            {t(lang, "no_events")}<br />{t(lang, "create_first_event")}
           </div>
         ) : (
           <div className="evt-grid">
