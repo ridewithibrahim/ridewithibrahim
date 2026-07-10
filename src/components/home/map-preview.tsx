@@ -8,7 +8,7 @@ import { DIFFICULTY } from "@/lib/types";
 import { ArrowIcon, BikeIcon, MotoIcon, TentIcon } from "./icons";
 
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-const FILTERS = ["Tüm türler", "Bisiklet", "MTB", "Moto", "Kamp"];
+const FILTER_KEYS = ["all_types", "bike_word", "ty_mtb", "ty_moto", "ts_kamp"] as const;
 
 function toGeoJSON(routes: MapRoute[]) {
   return {
@@ -70,7 +70,7 @@ export function MapPreview({ routes, lang = "tr" }: { lang?: import("@/lib/i18n"
             <h2>{t(lang, "livemap_h2")}</h2>
           </div>
           <Link className="link" href="/harita">
-            Haritayı aç <ArrowIcon width={15} height={15} />
+            {t(lang, "cta_open_map")} <ArrowIcon width={15} height={15} />
           </Link>
         </div>
 
@@ -99,9 +99,9 @@ export function MapPreview({ routes, lang = "tr" }: { lang?: import("@/lib/i18n"
 
           <div className="mapx-overlay">
             <div className="chips">
-              {FILTERS.map((f, i) => (
+              {FILTER_KEYS.map((f, i) => (
                 <button key={f} className={`chip${i === active ? " active" : ""}`} onClick={() => setActive(i)} type="button">
-                  {f}
+                  {t(lang, f)}
                 </button>
               ))}
             </div>

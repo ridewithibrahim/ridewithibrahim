@@ -204,6 +204,8 @@ const STR = {
   opening: ["Açılıyor…", "Opening…"],
   msg_blocked_err: ["Bu kişiyle mesajlaşma engellenmiş.", "Messaging with this user is blocked."],
   msg_start_fail: ["Sohbet başlatılamadı.", "Couldn't start the conversation."],
+  all_types: ["Tüm türler", "All types"],
+  bike_word: ["Bisiklet", "Bike"],
 } as const;
 
 export type StrKey = keyof typeof STR;
