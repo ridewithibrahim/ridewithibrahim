@@ -800,3 +800,9 @@ button.card-like:disabled { opacity: .7; }
   font-weight: 800; letter-spacing: .04em; padding: 6px 10px; cursor: pointer; transition: .15s; }
 .lang-sw button.on { background: rgba(242, 177, 76, .14); color: var(--amber); }
 .lang-sw button:hover:not(.on) { color: var(--ink); }
+
+/* mobilde dil kapsulu ust bardan menuye tasinir (tasma onlemi) */
+@media (max-width: 720px) {
+  .nav-cta .lang-sw { display: none; }
+}
+.menu-lang { padding: 4px 0 10px; border-bottom: 1px solid var(--line); margin-bottom: 8px; }

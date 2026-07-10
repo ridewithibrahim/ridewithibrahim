@@ -119,6 +119,7 @@ export function Navbar({ username, unread = 0, lang = "tr" }: { username?: strin
       </div>
 
       <div className={`nav-mobile${open ? " open" : ""}`}>
+        <div className="menu-lang"><LangSwitcher lang={lang} /></div>
         {LINKS.map((l) => (
           <Link key={l.href} href={l.href} onClick={() => setOpen(false)}>{l.label}</Link>
         ))}

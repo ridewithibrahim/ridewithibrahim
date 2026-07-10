@@ -1,6 +1,55 @@
-export const metadata = { title: "Kullanım Şartları — RideWithIbrahim" };
+import { getLang } from "@/lib/i18n-server";
 
-export default function TermsPage() {
+export const metadata = { title: "Kullanım Şartları / Terms — RideWithIbrahim" };
+
+export default async function TermsPage() {
+  const lang = await getLang();
+
+  if (lang === "en") {
+    return (
+      <main className="legal">
+        <div className="wrap">
+          <span className="eyebrow">Terms of Use</span>
+          <h1>Short rules, long roads.</h1>
+          <p className="legal-updated">Last updated: July 2026</p>
+
+          <h2>The service</h2>
+          <p>
+            RideWithIbrahim is a platform for sharing cycling, moto, camping and exploring routes and
+            for organising community meetups. By using the service you accept these terms.
+          </p>
+
+          <h2>Content & responsibility</h2>
+          <p>
+            The routes, photos and comments you share belong to you, and you are responsible for
+            them. Content that violates others&apos; rights, is misleading or gives dangerous
+            directions may be removed. Routes are community contributions; their accuracy and safety
+            are not guaranteed.
+          </p>
+
+          <h2>Safety notice</h2>
+          <p>
+            Riding, camping and outdoor activities carry inherent risk. Before following a route,
+            assess the weather, road and surface conditions yourself; wear a helmet and protective
+            gear. RideWithIbrahim cannot be held liable for losses arising from information on the
+            platform.
+          </p>
+
+          <h2>Your account</h2>
+          <p>
+            You are responsible for the security of your account. Accounts may be suspended for use
+            that breaks the rules. These terms may be updated from time to time; significant changes
+            will be announced on this page.
+          </p>
+
+          <p className="legal-note">
+            Questions? Use the <a href="/iletisim">contact</a> page.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="legal">
       <div className="wrap">
