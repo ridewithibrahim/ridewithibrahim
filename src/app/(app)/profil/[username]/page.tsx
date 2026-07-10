@@ -58,6 +58,23 @@ export default async function ProfilePage({
 
   const totalKm = totalDistance / 1000;
   const rank = getRank(totalRoutes, totalKm);
+  // tamamlama istatistikleri
+  const { data: compRows } = await supabase
+    .from("route_completions")
+    .select("route_id")
+    .eq("user_id", profile.id)
+    .returns<{ route_id: string }[]>();
+  const compIds = (compRows ?? []).map((c) => c.route_id);
+  let riddenKm = 0;
+  if (compIds.length) {
+    const { data: compRoutes } = await supabase
+      .from("routes")
+      .select("distance_m")
+      .in("id", compIds)
+      .returns<{ distance_m: number }[]>();
+    riddenKm = Math.round(((compRoutes ?? []).reduce((s, r) => s + r.distance_m, 0)) / 1000);
+  }
+
   const badges = computeBadges(routes);
   const next = getNextRank(totalRoutes, totalKm);
 
@@ -116,6 +133,8 @@ export default async function ProfilePage({
           <div><b>{totalRoutes}</b><span>{t(lang, "stat_routes")}</span></div>
           <div><b>{km(totalDistance)}</b><span>{t(lang, "stat_km")}</span></div>
           <div><b>{totalLikes.toLocaleString("tr-TR")}</b><span>{t(lang, "total_likes")}</span></div>
+          <div><b>{compIds.length}</b><span>🏁 {t(lang, "stat_completed")}</span></div>
+          <div><b>{riddenKm.toLocaleString("tr-TR")}</b><span>{t(lang, "stat_ridden")}</span></div>
         </div>
 
         <div className="pf-badges">

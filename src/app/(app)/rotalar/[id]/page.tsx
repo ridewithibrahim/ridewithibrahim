@@ -9,6 +9,7 @@ import { RouteTypeIcon, PinIcon } from "@/components/home/icons";
 import { RouteDetailMap } from "@/components/routes/route-detail-map";
 import { ElevationChart } from "@/components/routes/elevation-chart";
 import { LikeSaveButtons } from "@/components/routes/like-save-buttons";
+import { CompleteButton } from "@/components/routes/complete-button";
 import { ShareButton } from "@/components/routes/share-button";
 import { StoryCardButton } from "@/components/routes/story-card-button";
 import { DeleteRouteButton } from "@/components/routes/delete-route-button";
@@ -119,6 +120,22 @@ export default async function RouteDetailPage({
   }
   const isOwner = user?.id === route.user_id;
 
+  // tamamlama: sayı + benim durumum
+  const { count: doneCount } = await supabase
+    .from("route_completions")
+    .select("id", { count: "exact", head: true })
+    .eq("route_id", route.id);
+  let myDone = false;
+  if (user) {
+    const { data: dc } = await supabase
+      .from("route_completions")
+      .select("id")
+      .eq("route_id", route.id)
+      .eq("user_id", user.id)
+      .maybeSingle<{ id: string }>();
+    myDone = !!dc;
+  }
+
   // like/save state for the current user
   let liked = false;
   let saved = false;
@@ -192,6 +209,12 @@ export default async function RouteDetailPage({
             likes={route.likes_count}
             saves={route.saves_count}
             isAuthed={!!user}
+          />
+          <CompleteButton
+            routeId={route.id}
+            initialDone={myDone}
+            initialCount={doneCount ?? 0}
+            lang={lang}
           />
         </div>
 

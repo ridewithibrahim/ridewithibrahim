@@ -9,14 +9,14 @@ export const metadata = { title: "Bildirimler — RideWithIbrahim" };
 type NotifRow = {
   id: string;
   actor_id: string;
-  type: "like" | "comment" | "join";
+  type: "like" | "comment" | "join" | "complete";
   route_id: string | null;
   event_id: string | null;
   read: boolean;
   created_at: string;
 };
 
-const ICON: Record<NotifRow["type"], string> = { like: "❤️", comment: "💬", join: "🤝" };
+const ICON: Record<NotifRow["type"], string> = { like: "❤️", comment: "💬", join: "🤝", complete: "🏁" };
 
 function timeAgo(iso: string, lang: Lang) {
   const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
@@ -109,6 +109,8 @@ export default async function NotificationsPage() {
                     <><b>@{actor}</b> liked your route <b>{target}</b></>
                   ) : n.type === "comment" ? (
                     <><b>@{actor}</b> commented on your route <b>{target}</b></>
+                  ) : n.type === "complete" ? (
+                    <><b>@{actor}</b> completed your route <b>{target}</b> 🎉</>
                   ) : (
                     <><b>@{actor}</b> is joining your meetup <b>{target}</b></>
                   )
@@ -116,6 +118,8 @@ export default async function NotificationsPage() {
                   <><b>@{actor}</b>, <b>{target}</b> rotanı beğendi</>
                 ) : n.type === "comment" ? (
                   <><b>@{actor}</b>, <b>{target}</b> rotana yorum yaptı</>
+                ) : n.type === "complete" ? (
+                  <><b>@{actor}</b>, <b>{target}</b> rotanı tamamladı 🎉</>
                 ) : (
                   <><b>@{actor}</b>, <b>{target}</b> buluşmana katılıyor</>
                 );

@@ -216,6 +216,11 @@ const STR = {
   time_word: ["Saat", "Time"],
   leave_event: ["Katılımdan çık", "Leave"],
   full_event: ["Kontenjan dolu", "Fully booked"],
+  complete_btn: ["🏁 Tamamladım", "🏁 I completed it"],
+  completed_state: ["✅ Tamamlandı", "✅ Completed"],
+  riders_completed: ["kişi tamamladı", "riders completed"],
+  stat_completed: ["Tamamlanan", "Completed"],
+  stat_ridden: ["Sürülen km", "Km ridden"],
 } as const;
 
 export type StrKey = keyof typeof STR;
