@@ -237,7 +237,7 @@ export default async function RouteDetailPage({
             title={route.title}
             province={route.province}
             stats={`${km(route.distance_m)} km  ·  ↑ ${route.elevation_gain_m.toLocaleString("tr-TR")} m  ·  ${formatDuration(route.duration_min)}`}
-            diffLabel={diff.label}
+            diffLabel={diffName(lang, route.difficulty)}
             diffColor={diff.color}
             coords={coords as [number, number][]}
             photoUrl={route.thumbnail_url}
