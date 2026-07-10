@@ -118,6 +118,37 @@ export async function getRoutes(f: RouteFilters = {}): Promise<RouteSummary[]> {
   }
 }
 
+/** Rotası olan illerin benzersiz listesi. */
+export async function getProvinces(): Promise<string[]> {
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("routes")
+      .select("province")
+      .limit(1000)
+      .returns<{ province: string }[]>();
+    return [...new Set((data ?? []).map((r) => r.province).filter(Boolean))];
+  } catch {
+    return [];
+  }
+}
+
+/** Bir ildeki rotalar (yeniden eskiye). */
+export async function getRoutesByProvince(province: string): Promise<RouteSummary[]> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("routes")
+      .select(ROUTE_COLS)
+      .eq("province", province)
+      .order("created_at", { ascending: false });
+    if (error || !data) return [];
+    return enrich(supabase, data as RouteRow[]);
+  } catch {
+    return [];
+  }
+}
+
 /** Verilen id listesindeki rotaları (verilen sırayla) getirir. */
 export async function getRoutesByIds(ids: string[]): Promise<RouteSummary[]> {
   if (!ids.length) return [];

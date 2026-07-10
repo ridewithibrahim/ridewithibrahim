@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { SiteJsonLd } from "@/components/shared/site-jsonld";
 import { Analytics } from "@vercel/analytics/next";
 import { Archivo, Hanken_Grotesk, Space_Mono } from "next/font/google";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -54,6 +55,7 @@ export default function RootLayout({
       className={`${display.variable} ${body.variable} ${mono.variable}`}
     >
       <body>
+        <SiteJsonLd />
         {children}
         <Analytics />
       </body>

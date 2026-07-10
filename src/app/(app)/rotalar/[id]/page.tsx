@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getLang } from "@/lib/i18n-server";
+import { slugifyProvince } from "@/lib/slug";
 import { t as tr, diffName, typeName } from "@/lib/i18n";
 import { DIFFICULTY, km, formatDuration } from "@/lib/types";
 import type { RouteType, Difficulty } from "@/lib/types";
@@ -182,7 +183,22 @@ export default async function RouteDetailPage({
   return (
     <main className="detail">
       <div className="wrap detail-wrap">
-        <Link href="/rotalar" className="detail-back">← {tr(lang, "nav_routes")}</Link>
+        <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "TouristTrip",
+            name: route.title,
+            description:
+              route.description ??
+              `${route.province} bölgesinde ${km(route.distance_m)} km'lik rota — RideWithIbrahim topluluk rotası.`,
+            touristType: "Cyclists",
+            itinerary: { "@type": "Place", name: route.province },
+          }),
+        }}
+      />
+      <Link href="/rotalar" className="detail-back">← {tr(lang, "nav_routes")}</Link>
 
         <div className="detail-head">
           <div className="dh-left">
@@ -195,7 +211,7 @@ export default async function RouteDetailPage({
             </div>
             <h1>{route.title}</h1>
             <div className="dh-sub">
-              <span><PinIcon width={13} height={13} /> {route.province}</span>
+              <span><PinIcon width={13} height={13} /> <Link href={`/rotalar/il/${slugifyProvince(route.province)}`} className="prov-link">{route.province}</Link></span>
               {author && (
                 <Link href={`/profil/${author}`} className="dh-author">· @{author}</Link>
               )}

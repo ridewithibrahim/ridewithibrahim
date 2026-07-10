@@ -119,7 +119,27 @@ export default async function EventDetailPage({
   return (
     <main className="detail">
       <div className="wrap detail-wrap">
-        <Link href="/bulusmalar" className="detail-back">← {tt(lang, "nav_meetups")}</Link>
+        <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Event",
+            name: ev.title,
+            startDate: ev.starts_at,
+            eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+            eventStatus: "https://schema.org/EventScheduled",
+            location: {
+              "@type": "Place",
+              name: ev.location,
+              address: ev.province,
+            },
+            description: ev.description ?? `${ev.province} bölgesinde topluluk buluşması — RideWithIbrahim.`,
+            organizer: { "@type": "Organization", name: "RideWithIbrahim", url: "https://ridewithibrahim.com" },
+          }),
+        }}
+      />
+      <Link href="/bulusmalar" className="detail-back">← {tt(lang, "nav_meetups")}</Link>
 
         <div className="detail-head">
           <div className="dh-left">

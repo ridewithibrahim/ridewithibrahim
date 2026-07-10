@@ -822,3 +822,7 @@ button.card-like:disabled { opacity: .7; }
   transform: translateY(-1px); box-shadow: 0 6px 18px rgba(95, 184, 163, .15); }
 .btn-complete.on { background: var(--spruce); border-color: var(--spruce); color: #0c1512; }
 .btn-complete.on:hover { filter: brightness(1.06); }
+
+/* il linki (rota detayinda) */
+.prov-link { color: inherit; border-bottom: 1px dotted var(--ink-faint); transition: .15s; }
+.prov-link:hover { color: var(--amber); border-color: var(--amber); }

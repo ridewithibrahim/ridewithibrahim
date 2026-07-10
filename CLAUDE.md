@@ -99,6 +99,10 @@ Koleksiyoncu(15), 100/500 km Kulübü, Tırmanışçı(tek rotada 1000m+), Sevil
 - Site geneli sosyal kart: `public/og-image.png` (1200×630, PIL ile üretildi) — layout'ta
   openGraph.images + twitter summary_large_image. Önizleme testleri: opengraph.xyz
   (mesajlaşma uygulamaları önbelleği inatçıdır).
+- **İl SEO sayfaları:** /rotalar/il/[slug] (slugifyProvince ile; "Muğla bisiklet rotaları" tarzı
+  aramaların hedefi). Sitemap'e otomatik girer; rota detayındaki il adı bu sayfaya link verir.
+- **JSON-LD:** kök layout'ta WebSite+Organization (SiteJsonLd), rota detayında TouristTrip,
+  buluşmada Event, il sayfasında BreadcrumbList.
 - next.config.ts: eski site yönlendirmeleri `/terms→/sartlar`, `/privacy→/gizlilik`, `/contact→/iletisim`.
 - GSC "dizine eklenmedi" kayıtları çoğunlukla bilgidir; hakem: dizinlenen sayfa sayısı + Performans.
 
