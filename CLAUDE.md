@@ -122,8 +122,7 @@ Dünyaya açılım = sorgudaki `area["ISO3166-1"="TR"]` satırını değiştirme
 ## 🌍 i18n (çift dil: TR/EN)
 Çerez tabanlı — URL'ler DEĞİŞMEZ, `[locale]` route refactor'u bilinçli olarak YAPILMADI (zip iş
 akışında çok riskli). Mimari: `src/lib/i18n.ts` (STR sözlüğü ["tr","en"] çiftleri + `t(lang,key)` +
-`diffName()`/`typeName()`; çerez adı rwi_lang) · `src/lib/i18n-server.ts` (`getLang()` cookies'ten,
-varsayılan tr) · `lang-switcher.tsx` (navbar'da TR|EN kapsülü, cookie + router.refresh) ·
+`diffName()`/`typeName()`; çerez adı rwi_lang) · `src/lib/i18n-server.ts` (`getLang()`: çerez > tarayıcı-dili-tr > ülke-TR > en; yabancı ziyaretçi otomatik İngilizce karşılanır) · `lang-switcher.tsx` (navbar'da TR|EN kapsülü, cookie + router.refresh) ·
 `badges.ts`'te nameEn/labelEn/descEn + `rankName()`. Desen: server sayfa `getLang()` ile okur,
 client bileşenlere `lang` prop geçirir (her yerde `lang = "tr"` varsayılanı — çevrilmemiş kullanım
 kırılmaz). YENİ METİN EKLERKEN: sözlüğe çift ekle, `t()` ile kullan.
