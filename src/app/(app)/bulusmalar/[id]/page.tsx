@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getLang } from "@/lib/i18n-server";
+import { t as tt } from "@/lib/i18n";
 import { ROUTE_TYPES } from "@/lib/types";
 import { PinIcon, RouteTypeIcon } from "@/components/home/icons";
 import { JoinButton } from "@/components/events/join-button";
@@ -57,6 +59,7 @@ export default async function EventDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const lang = await getLang();
   const supabase = await createClient();
 
   const {
@@ -144,11 +147,12 @@ export default async function EventDetailPage({
         <div className="readout">
           <div><span>Tarih</span><b style={{ fontSize: 15 }}>{dateStr}</b></div>
           <div><span>Saat</span><b>{timeStr}</b></div>
-          <div><span>Katılımcı</span><b className="amber">{count}{ev.capacity ? ` / ${ev.capacity}` : ""}</b></div>
+          <div><span>{tt(lang, "attendees_word")}</span><b className="amber">{count}{ev.capacity ? ` / ${ev.capacity}` : ""}</b></div>
         </div>
 
         <div className="detail-actions">
           <ShareButton
+            lang={lang}
             title={ev.title}
             text={`${ev.title} — ${dateStr} · ${ev.location} 🚴 Sen de katıl!`}
           />
@@ -164,15 +168,15 @@ export default async function EventDetailPage({
 
         {ev.description && (
           <div className="detail-desc">
-            <span className="eyebrow">Açıklama</span>
+            <span className="eyebrow">{tt(lang, "desc_word")}</span>
             <p>{ev.description}</p>
           </div>
         )}
 
         <section className="comments">
-          <h2 className="cm-title">Katılımcılar <span>{count}</span></h2>
+          <h2 className="cm-title">{tt(lang, "attendees_h")} <span>{count}</span></h2>
           {attendees.length === 0 ? (
-            <p className="cm-empty">Henüz katılan yok. İlk katılan sen ol!</p>
+            <p className="cm-empty">{tt(lang, "no_attendees")}</p>
           ) : (
             <div className="attendee-list">
               {attendees.map((a, i) => (

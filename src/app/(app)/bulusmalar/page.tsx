@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { getLang } from "@/lib/i18n-server";
+import { t } from "@/lib/i18n";
 import { getEvents } from "@/lib/queries";
 import { EventCard } from "@/components/events/event-card";
 import { PlusIcon } from "@/components/home/icons";
@@ -9,6 +11,7 @@ export const metadata = {
 };
 
 export default async function EventsPage() {
+  const lang = await getLang();
   const events = await getEvents();
 
   return (
@@ -16,8 +19,8 @@ export default async function EventsPage() {
       <div className="wrap">
         <div className="sec-head">
           <div>
-            <span className="eyebrow">Yaklaşan buluşmalar</span>
-            <h2>Topluluğa katıl</h2>
+            <span className="eyebrow">{t(lang, "events_eyebrow")}</span>
+            <h2>{t(lang, "events_h2")}</h2>
           </div>
           <Link className="btn btn-primary btn-sm" href="/bulusmalar/yeni">
             <PlusIcon width={16} height={16} /> Buluşma aç

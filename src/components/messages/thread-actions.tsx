@@ -3,23 +3,29 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { t, type Lang } from "@/lib/i18n";
 
-const REASONS = ["Spam", "Hakaret / taciz", "Sahte profil veya içerik", "Diğer"];
+const REASONS: Record<Lang, string[]> = {
+  tr: ["Spam", "Hakaret / taciz", "Sahte profil veya içerik", "Diğer"],
+  en: ["Spam", "Harassment / abuse", "Fake profile or content", "Other"],
+};
 
 export function ThreadActions({
   otherId,
   otherUsername,
   blockedByMe,
+  lang = "tr",
 }: {
   otherId: string;
   otherUsername: string;
   blockedByMe: boolean;
+  lang?: Lang;
 }) {
   const router = useRouter();
   const [arming, setArming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [reporting, setReporting] = useState(false);
-  const [reason, setReason] = useState(REASONS[0]);
+  const [reason, setReason] = useState(REASONS[lang][0]);
   const [detail, setDetail] = useState("");
   const [sent, setSent] = useState(false);
 
@@ -76,25 +82,25 @@ export function ThreadActions({
     <div className="thread-actions">
       {blockedByMe ? (
         <button type="button" className="btn btn-ghost btn-sm" onClick={unblock} disabled={busy}>
-          Engeli kaldır
+          {t(lang, "unblock")}
         </button>
       ) : arming ? (
         <span className="del-confirm">
-          <span>@{otherUsername} engellensin mi?</span>
+          <span>{lang === "en" ? <>Block @{otherUsername}?</> : <>@{otherUsername} engellensin mi?</>}</span>
           <button type="button" className="btn-del solid" onClick={block} disabled={busy}>
-            Evet, engelle
+            {t(lang, "block_yes")}
           </button>
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => setArming(false)}>
-            Vazgeç
+            {t(lang, "cancel")}
           </button>
         </span>
       ) : (
         <>
           <button type="button" className="btn-del" onClick={() => setArming(true)}>
-            Engelle
+            {t(lang, "block")}
           </button>
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => setReporting((r) => !r)}>
-            Şikâyet et
+            {t(lang, "report_btn")}
           </button>
         </>
       )}
@@ -102,23 +108,23 @@ export function ThreadActions({
       {reporting && !blockedByMe && (
         <div className="report-panel">
           {sent ? (
-            <p className="report-ok">Şikâyetin iletildi, inceleyeceğiz. ✓</p>
+            <p className="report-ok">{t(lang, "report_ok")}</p>
           ) : (
             <>
               <label className="field">
-                <span>Sebep</span>
+                <span>{t(lang, "reason_lbl")}</span>
                 <select value={reason} onChange={(e) => setReason(e.target.value)}>
-                  {REASONS.map((r) => (
+                  {REASONS[lang].map((r) => (
                     <option key={r} value={r}>{r}</option>
                   ))}
                 </select>
               </label>
               <label className="field">
-                <span>Detay (opsiyonel)</span>
+                <span>{t(lang, "detail_opt")}</span>
                 <textarea rows={2} value={detail} maxLength={500} onChange={(e) => setDetail(e.target.value)} />
               </label>
               <button type="button" className="btn btn-primary btn-sm" onClick={report} disabled={busy}>
-                Gönder
+                {t(lang, "send")}
               </button>
             </>
           )}

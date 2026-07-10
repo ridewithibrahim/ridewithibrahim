@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getLang } from "@/lib/i18n-server";
+import { t as tt, type Lang } from "@/lib/i18n";
 import { UnblockButton } from "@/components/messages/unblock-button";
 
 export const metadata = { title: "Mesajlar — RideWithIbrahim" };
@@ -13,15 +15,16 @@ type Conv = {
   last_message_text: string | null;
 };
 
-function timeAgo(iso: string) {
+function timeAgo(iso: string, lang: Lang) {
   const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
-  if (s < 60) return "az önce";
-  if (s < 3600) return `${Math.floor(s / 60)} dk`;
-  if (s < 86400) return `${Math.floor(s / 3600)} sa`;
-  return new Date(iso).toLocaleDateString("tr-TR", { day: "numeric", month: "short" });
+  if (s < 60) return tt(lang, "just_now");
+  if (s < 3600) return `${Math.floor(s / 60)} ${lang === "en" ? "m" : "dk"}`;
+  if (s < 86400) return `${Math.floor(s / 3600)} ${lang === "en" ? "h" : "sa"}`;
+  return new Date(iso).toLocaleDateString(lang === "en" ? "en-GB" : "tr-TR", { day: "numeric", month: "short" });
 }
 
 export default async function MessagesPage() {
+  const lang = await getLang();
   const supabase = await createClient();
   const {
     data: { user },
@@ -75,16 +78,16 @@ export default async function MessagesPage() {
       <div className="wrap" style={{ maxWidth: 720 }}>
         <div className="sec-head">
           <div>
-            <span className="eyebrow">Topluluk</span>
-            <h2>Mesajlar</h2>
+            <span className="eyebrow">{tt(lang, "f_community")}</span>
+            <h2>{tt(lang, "messages")}</h2>
           </div>
         </div>
 
         {convs.length === 0 ? (
           <div className="empty" style={{ padding: "60px 20px" }}>
-            Henüz mesajın yok.
+            {tt(lang, "msgs_empty1")}
             <br />
-            Bir kullanıcının profilinden &quot;Mesaj gönder&quot; ile sohbet başlatabilirsin.
+            {tt(lang, "msgs_empty2")}
           </div>
         ) : (
           <div className="notif-list">
@@ -104,9 +107,9 @@ export default async function MessagesPage() {
                   </span>
                   <span className="n-text">
                     <b>@{p?.username ?? "kullanıcı"}</b>
-                    <span className="conv-preview">{c.last_message_text ?? "Sohbeti başlat"}</span>
+                    <span className="conv-preview">{c.last_message_text ?? tt(lang, "start_chat")}</span>
                   </span>
-                  <span className="n-time">{timeAgo(c.last_message_at)}</span>
+                  <span className="n-time">{timeAgo(c.last_message_at, lang)}</span>
                   {n > 0 && <span className="bell-badge conv-badge">{n > 9 ? "9+" : n}</span>}
                 </Link>
               );
@@ -116,11 +119,11 @@ export default async function MessagesPage() {
 
         {(blockedProfs ?? []).length > 0 && (
           <div className="blocked-box">
-            <span className="eyebrow">Engellediklerin</span>
+            <span className="eyebrow">{tt(lang, "blocked_h")}</span>
             {(blockedProfs ?? []).map((b) => (
               <div key={b.id} className="blocked-row">
                 <span>@{b.username ?? "kullanıcı"}</span>
-                <UnblockButton blockedId={b.id} />
+                <UnblockButton blockedId={b.id} lang={lang} />
               </div>
             ))}
           </div>

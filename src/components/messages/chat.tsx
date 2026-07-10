@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { t, type Lang } from "@/lib/i18n";
 
 export interface ChatMessage {
   id: string;
@@ -15,11 +16,13 @@ export function Chat({
   meId,
   initial,
   disabled = false,
+  lang = "tr",
 }: {
   conversationId: string;
   meId: string;
   initial: ChatMessage[];
   disabled?: boolean;
+  lang?: Lang;
 }) {
   const [msgs, setMsgs] = useState<ChatMessage[]>(initial);
   const [text, setText] = useState("");
@@ -77,7 +80,7 @@ export function Chat({
       .single<ChatMessage>();
 
     if (error || !data) {
-      setErr("Mesaj gönderilemedi — engellenmiş olabilirsin ya da bağlantı koptu.");
+      setErr(t(lang, "chat_fail"));
     } else {
       setMsgs((cur) => [...cur, data]);
       lastTsRef.current = data.created_at;
@@ -91,7 +94,7 @@ export function Chat({
       <div className="chat-scroll">
         {msgs.length === 0 && (
           <div className="empty" style={{ padding: "40px 16px" }}>
-            İlk mesajı yaz, sohbeti başlat. 👋
+            {t(lang, "chat_first")}
           </div>
         )}
         {msgs.map((m) => (
@@ -106,12 +109,12 @@ export function Chat({
       </div>
 
       {disabled ? (
-        <p className="chat-blocked">Bu kişiyi engelledin — mesaj gönderilemez. Engeli Mesajlar sayfasından kaldırabilirsin.</p>
+        <p className="chat-blocked">{t(lang, "chat_blocked")}</p>
       ) : (
         <div className="chat-input">
           <textarea
             rows={1}
-            placeholder="Mesaj yaz…"
+            placeholder={t(lang, "chat_ph")}
             value={text}
             maxLength={2000}
             onChange={(e) => setText(e.target.value)}
@@ -123,7 +126,7 @@ export function Chat({
             }}
           />
           <button type="button" className="btn btn-primary btn-sm" onClick={send} disabled={sending || !text.trim()}>
-            {sending ? "…" : "Gönder"}
+            {sending ? "…" : t(lang, "send")}
           </button>
         </div>
       )}

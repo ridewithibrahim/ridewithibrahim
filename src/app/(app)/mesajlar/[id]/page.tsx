@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getLang } from "@/lib/i18n-server";
 import { Chat, type ChatMessage } from "@/components/messages/chat";
 import { ThreadActions } from "@/components/messages/thread-actions";
 
@@ -12,6 +13,7 @@ export default async function ThreadPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const lang = await getLang();
   const supabase = await createClient();
   const {
     data: { user },
@@ -73,7 +75,7 @@ export default async function ThreadPage({
             </span>
             <b>@{username}</b>
           </Link>
-          <ThreadActions otherId={otherId} otherUsername={username} blockedByMe={!!myBlock} />
+          <ThreadActions otherId={otherId} otherUsername={username} blockedByMe={!!myBlock} lang={lang} />
         </div>
 
         <Chat
@@ -81,6 +83,7 @@ export default async function ThreadPage({
           meId={user.id}
           initial={msgRows ?? []}
           disabled={!!myBlock}
+          lang={lang}
         />
       </div>
     </main>

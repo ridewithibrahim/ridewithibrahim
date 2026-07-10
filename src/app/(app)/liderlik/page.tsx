@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { getLang } from "@/lib/i18n-server";
+import { t } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/server";
 import { km } from "@/lib/types";
+import { getRank, rankName } from "@/lib/badges";
 
 export const metadata = {
   title: "Liderlik — RideWithIbrahim",
@@ -24,6 +27,7 @@ export default async function LeaderboardPage({
 }: {
   searchParams: Promise<{ donem?: string }>;
 }) {
+  const lang = await getLang();
   const sp = await searchParams;
   const allTime = sp.donem === "tum";
   const supabase = await createClient();
@@ -39,28 +43,28 @@ export default async function LeaderboardPage({
       <div className="wrap" style={{ maxWidth: 760 }}>
         <div className="sec-head">
           <div>
-            <span className="eyebrow">Liderlik tablosu</span>
-            <h2>{allTime ? "Tüm zamanlar" : "Bu haftanın liderleri"}</h2>
+            <span className="eyebrow">{t(lang, "lb_eyebrow")}</span>
+            <h2>{allTime ? t(lang, "lb_alltime") : t(lang, "lb_week_title")}</h2>
           </div>
         </div>
 
         <div className="lb-tabs">
           <Link href="/liderlik" className={`chip${!allTime ? " active" : ""}`}>
-            Bu hafta
+            {t(lang, "lb_week_tab")}
           </Link>
           <Link href="/liderlik?donem=tum" className={`chip${allTime ? " active" : ""}`}>
-            Tüm zamanlar
+            {t(lang, "lb_alltime")}
           </Link>
         </div>
 
         {rows.length === 0 ? (
           <div className="empty" style={{ padding: "60px 20px" }}>
             {allTime
-              ? "Henüz rota paylaşan yok."
-              : "Bu hafta henüz rota paylaşılmadı."}
+              ? t(lang, "lb_empty_all")
+              : t(lang, "lb_empty_week")}
             <br />
             <Link href="/rotalar/yeni" style={{ color: "var(--amber)", fontWeight: 600 }}>
-              İlk sırayı kap →
+              {t(lang, "lb_claim")}
             </Link>
           </div>
         ) : (
@@ -76,9 +80,15 @@ export default async function LeaderboardPage({
                     {r.username?.[0]?.toUpperCase() ?? "?"}
                   </span>
                   <b>@{r.username}</b>
+                  <span
+                    className="lb-rankbadge"
+                    title={rankName(getRank(r.route_count, Number(r.total_distance_m) / 1000), lang)}
+                  >
+                    {getRank(r.route_count, Number(r.total_distance_m) / 1000).emoji}
+                  </span>
                 </Link>
                 <div className="lb-stats mono">
-                  <span><b>{r.route_count}</b> rota</span>
+                  <span><b>{r.route_count}</b> {t(lang, "routes_word")}</span>
                   <span><b>{km(r.total_distance_m)}</b> km</span>
                   {typeof r.total_likes === "number" && (
                     <span><b>{r.total_likes.toLocaleString("tr-TR")}</b> ♥</span>

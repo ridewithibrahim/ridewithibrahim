@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { t, type Lang } from "@/lib/i18n";
 
 export interface CommentItem {
   id: string;
@@ -21,6 +22,7 @@ export function Comments({
   currentUsername,
   currentUserId,
   isModerator = false,
+  lang = "tr",
 }: {
   routeId: string;
   initial: CommentItem[];
@@ -28,6 +30,7 @@ export function Comments({
   currentUsername: string | null;
   currentUserId?: string | null;
   isModerator?: boolean;
+  lang?: Lang;
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -63,7 +66,7 @@ export function Comments({
 
     const row = data as { id: string; content: string; created_at: string } | null;
     if (err || !row) {
-      setError(err?.message ?? "Yorum gönderilemedi.");
+      setError(err?.message ?? t(lang, "cm_fail"));
       setBusy(false);
       return;
     }
@@ -91,13 +94,13 @@ export function Comments({
 
   return (
     <section className="comments">
-      <h2 className="cm-title">Yorumlar <span>{items.length}</span></h2>
+      <h2 className="cm-title">{t(lang, "cm_title")} <span>{items.length}</span></h2>
 
       {isAuthed ? (
         <form className="cm-form" onSubmit={submit}>
           <textarea
             rows={3}
-            placeholder="Bu rota hakkında ne düşünüyorsun?"
+            placeholder={t(lang, "cm_ph")}
             value={text}
             onChange={(e) => setText(e.target.value)}
             maxLength={2000}
@@ -105,18 +108,18 @@ export function Comments({
           {error && <p className="field-error">{error}</p>}
           <div className="cm-form-foot">
             <button className="btn btn-primary btn-sm" type="submit" disabled={busy || !text.trim()}>
-              {busy ? "Gönderiliyor…" : "Yorum yap"}
+              {busy ? t(lang, "cm_sending") : t(lang, "cm_send")}
             </button>
           </div>
         </form>
       ) : (
         <p className="cm-signin">
-          Yorum yapmak için <a href={`/login?next=/rotalar/${routeId}`}>giriş yap</a>.
+          {lang === "en" ? <><a href={`/login?next=/rotalar/${routeId}`}>Log in</a> to comment.</> : <>Yorum yapmak için <a href={`/login?next=/rotalar/${routeId}`}>giriş yap</a>.</>}
         </p>
       )}
 
       <div className="cm-list">
-        {items.length === 0 && <p className="cm-empty">İlk yorumu sen yaz.</p>}
+        {items.length === 0 && <p className="cm-empty">{t(lang, "cm_first")}</p>}
         {items.map((c, i) => (
           <div className="cm-item" key={c.id}>
             <span className="cm-avatar" style={{ background: AVATAR_COLORS[i % AVATAR_COLORS.length] }}>

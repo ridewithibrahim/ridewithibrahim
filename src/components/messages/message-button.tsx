@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { t, type Lang } from "@/lib/i18n";
 
-export function MessageButton({ otherId }: { otherId: string }) {
+export function MessageButton({ otherId, lang = "tr" }: { otherId: string; lang?: Lang }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -23,10 +24,10 @@ export function MessageButton({ otherId }: { otherId: string }) {
     const { data, error } = await supabase.rpc("get_or_create_conversation", { p_other: otherId } as never);
     if (error || !data) {
       const msg = error?.message ?? "";
-      if (msg.includes("engellen")) setErr("Bu kişiyle mesajlaşma engellenmiş.");
+      if (msg.includes("engellen")) setErr(t(lang, "msg_blocked_err"));
       else if (msg.toLowerCase().includes("function") || msg.includes("schema cache"))
         setErr("Mesajlaşma altyapısı kurulu değil (0011 SQL'i çalıştırılmalı).");
-      else setErr(msg || "Sohbet başlatılamadı.");
+      else setErr(msg || t(lang, "msg_start_fail"));
       setBusy(false);
       return;
     }

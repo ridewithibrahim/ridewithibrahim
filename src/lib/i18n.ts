@@ -137,6 +137,73 @@ const STR = {
   copied: ["Kopyalandı ✓", "Copied ✓"],
   story_card: ["📸 Hikâye kartı", "📸 Story card"],
   preparing: ["Hazırlanıyor…", "Preparing…"],
+
+  // --- profil / listeler ---
+  total_likes: ["Toplam beğeni", "Total likes"],
+  shared_routes: ["Paylaşılan rotalar", "Shared routes"],
+  no_routes_own: ["Henüz rota paylaşmadın.", "You haven't shared a route yet."],
+  collection: ["Koleksiyonun", "Your collection"],
+  no_saved: ["Henüz rota kaydetmedin.", "You haven't saved any routes yet."],
+  lb_eyebrow: ["Liderlik tablosu", "Leaderboard"],
+  lb_alltime: ["Tüm zamanlar", "All time"],
+  lb_week_title: ["Bu haftanın liderleri", "This week's leaders"],
+  lb_week_tab: ["Bu hafta", "This week"],
+  lb_empty_all: ["Henüz rota paylaşan yok.", "No one has shared a route yet."],
+  lb_empty_week: ["Bu hafta henüz rota paylaşılmadı.", "No routes shared this week yet."],
+  lb_claim: ["İlk sırayı kap →", "Claim the top spot →"],
+  attendees_word: ["Katılımcı", "Attendees"],
+  attendees_h: ["Katılımcılar", "Attendees"],
+  desc_word: ["Açıklama", "Description"],
+  no_attendees: ["Henüz katılan yok. İlk katılan sen ol!", "No one has joined yet. Be the first!"],
+
+  // --- yorumlar ---
+  cm_title: ["Yorumlar", "Comments"],
+  cm_ph: ["Bu rota hakkında ne düşünüyorsun?", "What do you think about this route?"],
+  cm_send: ["Yorum yap", "Comment"],
+  cm_sending: ["Gönderiliyor…", "Sending…"],
+  cm_first: ["İlk yorumu sen yaz.", "Be the first to comment."],
+  cm_fail: ["Yorum gönderilemedi.", "Couldn't send the comment."],
+
+  // --- bildirimler ---
+  notif_eyebrow: ["Neler olmuş?", "What's new?"],
+  notif_empty1: ["Henüz bildirimin yok.", "No notifications yet."],
+  notif_empty2: ["Rotaların beğeni ve yorum aldığında burada görürsün.", "You'll see likes and comments on your routes here."],
+  just_now: ["az önce", "just now"],
+  min_ago: ["dk önce", "min ago"],
+  hr_ago: ["sa önce", "h ago"],
+  day_ago: ["gün önce", "d ago"],
+
+  // --- mesajlar ---
+  msgs_empty1: ["Henüz mesajın yok.", "No messages yet."],
+  msgs_empty2: [
+    'Bir kullanıcının profilinden "Mesaj gönder" ile sohbet başlatabilirsin.',
+    'Start a conversation from a user\'s profile with "Send message".',
+  ],
+  start_chat: ["Sohbeti başlat", "Start the conversation"],
+  blocked_h: ["Engellediklerin", "Blocked users"],
+  unblock: ["Engeli kaldır", "Unblock"],
+  chat_first: ["İlk mesajı yaz, sohbeti başlat. 👋", "Say hi and start the conversation. 👋"],
+  chat_ph: ["Mesaj yaz…", "Type a message…"],
+  send: ["Gönder", "Send"],
+  chat_blocked: [
+    "Bu kişiyi engelledin — mesaj gönderilemez. Engeli Mesajlar sayfasından kaldırabilirsin.",
+    "You've blocked this user — messages can't be sent. You can unblock them on the Messages page.",
+  ],
+  chat_fail: [
+    "Mesaj gönderilemedi — engellenmiş olabilirsin ya da bağlantı koptu.",
+    "Couldn't send — you may be blocked or the connection dropped.",
+  ],
+  block: ["Engelle", "Block"],
+  report_btn: ["Şikâyet et", "Report"],
+  block_yes: ["Evet, engelle", "Yes, block"],
+  cancel: ["Vazgeç", "Cancel"],
+  reason_lbl: ["Sebep", "Reason"],
+  detail_opt: ["Detay (opsiyonel)", "Details (optional)"],
+  report_ok: ["Şikâyetin iletildi, inceleyeceğiz. ✓", "Report received — we'll review it. ✓"],
+  send_message: ["💬 Mesaj gönder", "💬 Send message"],
+  opening: ["Açılıyor…", "Opening…"],
+  msg_blocked_err: ["Bu kişiyle mesajlaşma engellenmiş.", "Messaging with this user is blocked."],
+  msg_start_fail: ["Sohbet başlatılamadı.", "Couldn't start the conversation."],
 } as const;
 
 export type StrKey = keyof typeof STR;

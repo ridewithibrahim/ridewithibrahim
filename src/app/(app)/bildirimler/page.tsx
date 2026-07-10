@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getLang } from "@/lib/i18n-server";
+import { t as tt, type Lang } from "@/lib/i18n";
 
 export const metadata = { title: "Bildirimler — RideWithIbrahim" };
 
@@ -16,16 +18,17 @@ type NotifRow = {
 
 const ICON: Record<NotifRow["type"], string> = { like: "❤️", comment: "💬", join: "🤝" };
 
-function timeAgo(iso: string) {
+function timeAgo(iso: string, lang: Lang) {
   const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
-  if (s < 60) return "az önce";
-  if (s < 3600) return `${Math.floor(s / 60)} dk önce`;
-  if (s < 86400) return `${Math.floor(s / 3600)} sa önce`;
-  if (s < 604800) return `${Math.floor(s / 86400)} gün önce`;
-  return new Date(iso).toLocaleDateString("tr-TR", { day: "numeric", month: "short" });
+  if (s < 60) return tt(lang, "just_now");
+  if (s < 3600) return `${Math.floor(s / 60)} ${tt(lang, "min_ago")}`;
+  if (s < 86400) return `${Math.floor(s / 3600)} ${tt(lang, "hr_ago")}`;
+  if (s < 604800) return `${Math.floor(s / 86400)} ${tt(lang, "day_ago")}`;
+  return new Date(iso).toLocaleDateString(lang === "en" ? "en-GB" : "tr-TR", { day: "numeric", month: "short" });
 }
 
 export default async function NotificationsPage() {
+  const lang = await getLang();
   const supabase = await createClient();
   const {
     data: { user },
@@ -77,16 +80,16 @@ export default async function NotificationsPage() {
       <div className="wrap" style={{ maxWidth: 720 }}>
         <div className="sec-head">
           <div>
-            <span className="eyebrow">Neler olmuş?</span>
-            <h2>Bildirimler</h2>
+            <span className="eyebrow">{tt(lang, "notif_eyebrow")}</span>
+            <h2>{tt(lang, "notifications")}</h2>
           </div>
         </div>
 
         {notifs.length === 0 ? (
           <div className="empty" style={{ padding: "60px 20px" }}>
-            Henüz bildirimin yok.
+            {tt(lang, "notif_empty1")}
             <br />
-            Rotaların beğeni ve yorum aldığında burada görürsün.
+            {tt(lang, "notif_empty2")}
           </div>
         ) : (
           <div className="notif-list">
@@ -101,24 +104,26 @@ export default async function NotificationsPage() {
                 ? routeTitles.get(n.route_id) ?? "rotan"
                 : eventTitles.get(n.event_id ?? "") ?? "buluşman";
               const text =
-                n.type === "like" ? (
-                  <>
-                    <b>@{actor}</b>, <b>{target}</b> rotanı beğendi
-                  </>
+                lang === "en" ? (
+                  n.type === "like" ? (
+                    <><b>@{actor}</b> liked your route <b>{target}</b></>
+                  ) : n.type === "comment" ? (
+                    <><b>@{actor}</b> commented on your route <b>{target}</b></>
+                  ) : (
+                    <><b>@{actor}</b> is joining your meetup <b>{target}</b></>
+                  )
+                ) : n.type === "like" ? (
+                  <><b>@{actor}</b>, <b>{target}</b> rotanı beğendi</>
                 ) : n.type === "comment" ? (
-                  <>
-                    <b>@{actor}</b>, <b>{target}</b> rotana yorum yaptı
-                  </>
+                  <><b>@{actor}</b>, <b>{target}</b> rotana yorum yaptı</>
                 ) : (
-                  <>
-                    <b>@{actor}</b>, <b>{target}</b> buluşmana katılıyor
-                  </>
+                  <><b>@{actor}</b>, <b>{target}</b> buluşmana katılıyor</>
                 );
               return (
                 <Link key={n.id} href={href} className={`notif${n.read ? "" : " unread"}`}>
                   <span className="n-icon">{ICON[n.type]}</span>
                   <span className="n-text">{text}</span>
-                  <span className="n-time">{timeAgo(n.created_at)}</span>
+                  <span className="n-time">{timeAgo(n.created_at, lang)}</span>
                   {!n.read && <span className="n-dot" aria-label="okunmadı" />}
                 </Link>
               );

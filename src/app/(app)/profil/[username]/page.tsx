@@ -5,7 +5,9 @@ import { getUserRoutes } from "@/lib/queries";
 import { RouteCard } from "@/components/home/route-card";
 import { km } from "@/lib/types";
 import { PlusIcon } from "@/components/home/icons";
-import { getRank, getNextRank, computeBadges } from "@/lib/badges";
+import { getRank, getNextRank, computeBadges, rankName } from "@/lib/badges";
+import { getLang } from "@/lib/i18n-server";
+import { t } from "@/lib/i18n";
 import { MessageButton } from "@/components/messages/message-button";
 
 type ProfileShape = {
@@ -32,6 +34,7 @@ export default async function ProfilePage({
   params: Promise<{ username: string }>;
 }) {
   const { username } = await params;
+  const lang = await getLang();
   const supabase = await createClient();
 
   const { data: profileRow } = await supabase
@@ -75,25 +78,25 @@ export default async function ProfilePage({
           <div className="pf-id">
             <h1>@{username}</h1>
             <span className="rank-chip" title={`${totalRoutes} rota · ${Math.round(totalKm)} km`}>
-              {rank.emoji} {rank.name}
+              {rank.emoji} {rankName(rank, lang)}
             </span>
             {profile.full_name && <p className="pf-name">{profile.full_name}</p>}
             <div className="pf-meta">
               {profile.city && <span>{profile.city}</span>}
-              {joined && <span>{joined}&apos;den beri üye</span>}
+              {joined && <span>{lang === "en" ? `Member since ${joined}` : `${joined}\u2019den beri üye`}</span>}
             </div>
           </div>
           {!isOwn && user && (
             <div className="pf-actions">
-              <MessageButton otherId={profile.id} />
+              <MessageButton otherId={profile.id} lang={lang} />
             </div>
           )}
           {isOwn && (
             <div className="pf-actions">
-              <Link className="btn btn-ghost btn-sm" href="/kaydedilenler">Kaydettiklerim</Link>
-              <Link className="btn btn-ghost btn-sm" href="/ayarlar">Ayarlar</Link>
+              <Link className="btn btn-ghost btn-sm" href="/kaydedilenler">{t(lang, "saved")}</Link>
+              <Link className="btn btn-ghost btn-sm" href="/ayarlar">{t(lang, "settings")}</Link>
               <Link className="btn btn-primary btn-sm" href="/rotalar/yeni">
-                <PlusIcon width={16} height={16} /> Rota paylaş
+                <PlusIcon width={16} height={16} /> {t(lang, "cta_share")}
               </Link>
             </div>
           )}
@@ -101,29 +104,33 @@ export default async function ProfilePage({
 
         {isOwn && next && (
           <p className="rank-next">
-            Sıradaki rütbe: {next.rank.emoji} <b>{next.rank.name}</b> — {next.needRoutes} rota ya da {next.needKm} km kaldı.
+            {lang === "en" ? (
+              <>Next rank: {next.rank.emoji} <b>{rankName(next.rank, lang)}</b> — {next.needRoutes} more routes or {next.needKm} km to go.</>
+            ) : (
+              <>Sıradaki rütbe: {next.rank.emoji} <b>{next.rank.name}</b> — {next.needRoutes} rota ya da {next.needKm} km kaldı.</>
+            )}
           </p>
         )}
 
         <div className="pf-stats">
-          <div><b>{totalRoutes}</b><span>Rota</span></div>
-          <div><b>{km(totalDistance)}</b><span>Toplam km</span></div>
-          <div><b>{totalLikes.toLocaleString("tr-TR")}</b><span>Toplam beğeni</span></div>
+          <div><b>{totalRoutes}</b><span>{t(lang, "stat_routes")}</span></div>
+          <div><b>{km(totalDistance)}</b><span>{t(lang, "stat_km")}</span></div>
+          <div><b>{totalLikes.toLocaleString("tr-TR")}</b><span>{t(lang, "total_likes")}</span></div>
         </div>
 
         <div className="pf-badges">
           {badges.map((b) => (
-            <div key={b.id} className={`badge${b.earned ? " earned" : ""}`} title={b.desc}>
+            <div key={b.id} className={`badge${b.earned ? " earned" : ""}`} title={lang === "en" ? b.descEn : b.desc}>
               <span className="b-emoji">{b.earned ? b.emoji : "🔒"}</span>
-              <span className="b-label">{b.label}</span>
+              <span className="b-label">{lang === "en" ? b.labelEn : b.label}</span>
             </div>
           ))}
         </div>
 
         <div className="sec-head" style={{ marginTop: 36, marginBottom: 20 }}>
           <div>
-            <span className="eyebrow">Paylaşılan rotalar</span>
-            <h2>{totalRoutes} rota</h2>
+            <span className="eyebrow">{t(lang, "shared_routes")}</span>
+            <h2>{totalRoutes} {t(lang, "routes_word")}</h2>
           </div>
         </div>
 
@@ -131,20 +138,20 @@ export default async function ProfilePage({
           <div className="empty" style={{ padding: "60px 20px" }}>
             {isOwn ? (
               <>
-                Henüz rota paylaşmadın.
+                {t(lang, "no_routes_own")}
                 <br />
                 <Link href="/rotalar/yeni" style={{ color: "var(--amber)", fontWeight: 600 }}>
                   İlk rotanı paylaş →
                 </Link>
               </>
             ) : (
-              <>@{username} henüz rota paylaşmamış.</>
+              <>{lang === "en" ? <>@{username} hasn&apos;t shared any routes yet.</> : <>@{username} henüz rota paylaşmamış.</>}</>
             )}
           </div>
         ) : (
           <div className="route-grid">
             {routes.map((r) => (
-              <RouteCard key={r.id} route={r} />
+              <RouteCard key={r.id} route={r} lang={lang} />
             ))}
           </div>
         )}

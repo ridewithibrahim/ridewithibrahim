@@ -4,6 +4,7 @@
 export interface Rank {
   key: string;
   name: string;
+  nameEn: string;
   emoji: string;
   minRoutes: number;
   minKm: number;
@@ -11,12 +12,12 @@ export interface Rank {
 
 // Küçükten büyüğe sıralı
 export const RANKS: Rank[] = [
-  { key: "caylak", name: "Çaylak", emoji: "🌱", minRoutes: 0, minKm: 0 },
-  { key: "kasif", name: "Kaşif", emoji: "🧭", minRoutes: 1, minKm: 30 },
-  { key: "yol-arkadasi", name: "Yol Arkadaşı", emoji: "🚴", minRoutes: 3, minKm: 100 },
-  { key: "rotaci", name: "Rotacı", emoji: "🔥", minRoutes: 7, minKm: 300 },
-  { key: "km-avcisi", name: "Kilometre Avcısı", emoji: "⚡", minRoutes: 15, minKm: 750 },
-  { key: "efsane", name: "Efsane", emoji: "🏆", minRoutes: 30, minKm: 2000 },
+  { key: "caylak", name: "Çaylak", nameEn: "Rookie", emoji: "🌱", minRoutes: 0, minKm: 0 },
+  { key: "kasif", name: "Kaşif", nameEn: "Explorer", emoji: "🧭", minRoutes: 1, minKm: 30 },
+  { key: "yol-arkadasi", name: "Yol Arkadaşı", nameEn: "Road Companion", emoji: "🚴", minRoutes: 3, minKm: 100 },
+  { key: "rotaci", name: "Rotacı", nameEn: "Route Master", emoji: "🔥", minRoutes: 7, minKm: 300 },
+  { key: "km-avcisi", name: "Kilometre Avcısı", nameEn: "Distance Hunter", emoji: "⚡", minRoutes: 15, minKm: 750 },
+  { key: "efsane", name: "Efsane", nameEn: "Legend", emoji: "🏆", minRoutes: 30, minKm: 2000 },
 ];
 
 /** Mevcut rütbe: rota sayısı VEYA km eşiğini geçen en yüksek seviye. */
@@ -54,7 +55,9 @@ export interface Achievement {
   id: string;
   emoji: string;
   label: string;
+  labelEn: string;
   desc: string;
+  descEn: string;
   earned: boolean;
 }
 
@@ -67,13 +70,18 @@ export function computeBadges(routes: RouteSummary[]): Achievement[] {
   const types = new Set(routes.map((r) => r.routeType));
 
   return [
-    { id: "first", emoji: "🚴", label: "İlk Rota", desc: "İlk rotanı paylaştın", earned: count >= 1 },
-    { id: "five", emoji: "🗺️", label: "Haritacı", desc: "5 rota paylaştın", earned: count >= 5 },
-    { id: "fifteen", emoji: "🏅", label: "Koleksiyoncu", desc: "15 rota paylaştın", earned: count >= 15 },
-    { id: "km100", emoji: "📏", label: "100 km Kulübü", desc: "Toplam 100 km rota paylaştın", earned: totalKm >= 100 },
-    { id: "km500", emoji: "🛣️", label: "500 km Kulübü", desc: "Toplam 500 km rota paylaştın", earned: totalKm >= 500 },
-    { id: "climb", emoji: "⛰️", label: "Tırmanışçı", desc: "Tek rotada 1.000 m+ tırmanış", earned: maxClimb >= 1000 },
-    { id: "loved", emoji: "❤️", label: "Sevilen", desc: "Rotaların toplam 10+ beğeni aldı", earned: totalLikes >= 10 },
-    { id: "multi", emoji: "🎒", label: "Çok Yönlü", desc: "En az 3 farklı türde rota paylaştın", earned: types.size >= 3 },
+    { id: "first", emoji: "🚴", label: "İlk Rota", labelEn: "First Route", desc: "İlk rotanı paylaştın", descEn: "You shared your first route", earned: count >= 1 },
+    { id: "five", emoji: "🗺️", label: "Haritacı", labelEn: "Cartographer", desc: "5 rota paylaştın", descEn: "Shared 5 routes", earned: count >= 5 },
+    { id: "fifteen", emoji: "🏅", label: "Koleksiyoncu", labelEn: "Collector", desc: "15 rota paylaştın", descEn: "Shared 15 routes", earned: count >= 15 },
+    { id: "km100", emoji: "📏", label: "100 km Kulübü", labelEn: "100 km Club", desc: "Toplam 100 km rota paylaştın", descEn: "Shared 100 km of routes in total", earned: totalKm >= 100 },
+    { id: "km500", emoji: "🛣️", label: "500 km Kulübü", labelEn: "500 km Club", desc: "Toplam 500 km rota paylaştın", descEn: "Shared 500 km of routes in total", earned: totalKm >= 500 },
+    { id: "climb", emoji: "⛰️", label: "Tırmanışçı", labelEn: "Climber", desc: "Tek rotada 1.000 m+ tırmanış", descEn: "1,000 m+ of climbing in a single route", earned: maxClimb >= 1000 },
+    { id: "loved", emoji: "❤️", label: "Sevilen", labelEn: "Crowd Favourite", desc: "Rotaların toplam 10+ beğeni aldı", descEn: "Your routes received 10+ likes in total", earned: totalLikes >= 10 },
+    { id: "multi", emoji: "🎒", label: "Çok Yönlü", labelEn: "All-Rounder", desc: "En az 3 farklı türde rota paylaştın", descEn: "Shared routes in at least 3 different types", earned: types.size >= 3 },
   ];
+}
+
+/** Rütbe adı — dile göre. */
+export function rankName(r: Rank, lang: "tr" | "en" = "tr"): string {
+  return lang === "en" ? r.nameEn : r.name;
 }

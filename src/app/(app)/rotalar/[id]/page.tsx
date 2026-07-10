@@ -269,6 +269,7 @@ export default async function RouteDetailPage({
           isAuthed={!!user}
           currentUserId={user?.id ?? null}
           isModerator={isAdmin}
+          lang={lang}
           currentUsername={(user?.user_metadata?.username as string) ?? null}
         />
       </div>

@@ -119,6 +119,19 @@ Dünyaya açılım = sorgudaki `area["ISO3166-1"="TR"]` satırını değiştirme
   URL-kısıtlı token'ı geçer). Elle yüklenen fotoğraflar --force'suz korunur.
 - Hikâye kartı (site içi 📸): rota fotoğrafı varsa onu cover-crop kullanır, yoksa statik harita.
 
+## 🌍 i18n (çift dil: TR/EN)
+Çerez tabanlı — URL'ler DEĞİŞMEZ, `[locale]` route refactor'u bilinçli olarak YAPILMADI (zip iş
+akışında çok riskli). Mimari: `src/lib/i18n.ts` (STR sözlüğü ["tr","en"] çiftleri + `t(lang,key)` +
+`diffName()`/`typeName()`; çerez adı rwi_lang) · `src/lib/i18n-server.ts` (`getLang()` cookies'ten,
+varsayılan tr) · `lang-switcher.tsx` (navbar'da TR|EN kapsülü, cookie + router.refresh) ·
+`badges.ts`'te nameEn/labelEn/descEn + `rankName()`. Desen: server sayfa `getLang()` ile okur,
+client bileşenlere `lang` prop geçirir (her yerde `lang = "tr"` varsayılanı — çevrilmemiş kullanım
+kırılmaz). YENİ METİN EKLERKEN: sözlüğe çift ekle, `t()` ile kullan.
+Fazlar: 2a çerçeve ✅ · 2b ana sayfa ✅ · 2c keşif (harita/rotalar/detay) ✅ · 2d sosyal katman
+(profil+rozetler, bildirim, mesajlaşma, yorumlar, listeler, buluşma başlıkları) ✅ ·
+**2e KALDI:** formlar (rota paylaş/çiz, buluşma aç, ayarlar), buluşma Katıl butonu + EventCard içi.
+Ayrıca /en statik İngilizce tanıtım sayfası + hreflang mevcut.
+
 ## Tasarım kimliği
 Zemin #0C1512, amber #F2B14C, spruce #5FB8A3. Fontlar: Archivo / Hanken Grotesk / Space Mono.
 Kart dili: küçük kare ikon butonlar, pill chip'ler, ince --line kenarlıklar; tehlikeli eylemler sessiz

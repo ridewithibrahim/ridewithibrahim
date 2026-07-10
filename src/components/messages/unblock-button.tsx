@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { t, type Lang } from "@/lib/i18n";
 
-export function UnblockButton({ blockedId }: { blockedId: string }) {
+export function UnblockButton({ blockedId, lang = "tr" }: { blockedId: string; lang?: Lang }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
 
@@ -21,7 +22,7 @@ export function UnblockButton({ blockedId }: { blockedId: string }) {
 
   return (
     <button type="button" className="btn btn-ghost btn-sm" onClick={unblock} disabled={busy}>
-      {busy ? "…" : "Engeli kaldır"}
+      {busy ? "…" : t(lang, "unblock")}
     </button>
   );
 }
