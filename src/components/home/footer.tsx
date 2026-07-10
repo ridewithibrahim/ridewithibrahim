@@ -56,7 +56,6 @@ export function Footer({ lang = "tr" }: { lang?: Lang }) {
         { label: t(lang, "cta_share"), href: "/rotalar/yeni" },
         { label: t(lang, "f_new_meetup"), href: "/bulusmalar/yeni" },
         { label: t(lang, "saved"), href: "/kaydedilenler" },
-        { label: lang === "en" ? "🌐 Türkçe tanıtım" : "🌐 English", href: lang === "en" ? "/" : "/en" },
         { label: t(lang, "f_account"), href: "/ayarlar" },
       ],
     },
