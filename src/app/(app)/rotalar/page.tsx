@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { RoutesExplorer } from "@/components/routes/routes-explorer";
+import { getLang } from "@/lib/i18n-server";
+import { t } from "@/lib/i18n";
 import { PlusIcon } from "@/components/home/icons";
 
 export const metadata = {
@@ -7,21 +9,22 @@ export const metadata = {
   description: "Türe, zorluğa, mesafeye ve ile göre tüm rotaları keşfet.",
 };
 
-export default function RoutesPage() {
+export default async function RoutesPage() {
+  const lang = await getLang();
   return (
     <main className="sec" style={{ paddingTop: 40 }}>
       <div className="wrap">
         <div className="sec-head">
           <div>
-            <span className="eyebrow">Tüm rotalar</span>
-            <h2>Rotaları keşfet</h2>
+            <span className="eyebrow">{lang === "en" ? "All routes" : "Tüm rotalar"}</span>
+            <h2>{t(lang, "hero_explore")}</h2>
           </div>
           <Link className="btn btn-primary btn-sm" href="/rotalar/yeni">
             <PlusIcon width={16} height={16} /> Rota ekle
           </Link>
         </div>
 
-        <RoutesExplorer />
+        <RoutesExplorer lang={lang} />
       </div>
     </main>
   );

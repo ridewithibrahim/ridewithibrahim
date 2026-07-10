@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { t, type Lang } from "@/lib/i18n";
 
-export function ShareButton({ title, text }: { title: string; text: string }) {
+export function ShareButton({ title, text, lang = "tr" }: { title: string; text: string; lang?: Lang }) {
   const [copied, setCopied] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
 
@@ -47,19 +48,19 @@ export function ShareButton({ title, text }: { title: string; text: string }) {
           <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
           <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" />
         </svg>
-        {copied ? "Link kopyalandı ✓" : "Paylaş"}
+        {copied ? t(lang, "link_copied") : t(lang, "share")}
       </button>
       <button
         type="button"
         className="btn btn-ghost btn-sm"
         onClick={copyLink}
-        title="Sadece linki kopyala (Instagram bağlantı etiketi için)"
+        title={t(lang, "copy_link")}
       >
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
           <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
         </svg>
-        {linkCopied ? "Kopyalandı ✓" : "Linki kopyala"}
+        {linkCopied ? t(lang, "copied") : t(lang, "copy_link")}
       </button>
     </>
   );

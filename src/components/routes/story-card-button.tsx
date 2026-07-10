@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { t as tt, type Lang } from "@/lib/i18n";
 
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -63,6 +64,7 @@ export function StoryCardButton({
   diffColor,
   coords,
   photoUrl,
+  lang = "tr",
 }: {
   title: string;
   province: string;
@@ -71,6 +73,7 @@ export function StoryCardButton({
   diffColor: string;
   coords: [number, number][];
   photoUrl?: string | null;
+  lang?: Lang;
 }) {
   const [busy, setBusy] = useState(false);
 
@@ -196,7 +199,7 @@ export function StoryCardButton({
 
   return (
     <button type="button" className="btn btn-ghost btn-sm" onClick={generate} disabled={busy}>
-      {busy ? "Hazırlanıyor…" : "📸 Hikâye kartı"}
+      {busy ? tt(lang, "preparing") : tt(lang, "story_card")}
     </button>
   );
 }

@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { DIFFICULTY, ROUTE_TYPES, km, formatDuration } from "@/lib/types";
+import { getLang } from "@/lib/i18n-server";
+import { t as tr, diffName, typeName } from "@/lib/i18n";
+import { DIFFICULTY, km, formatDuration } from "@/lib/types";
 import type { RouteType, Difficulty } from "@/lib/types";
 import { RouteTypeIcon, PinIcon } from "@/components/home/icons";
 import { RouteDetailMap } from "@/components/routes/route-detail-map";
@@ -74,6 +76,7 @@ export default async function RouteDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const lang = await getLang();
   const supabase = await createClient();
 
   const {
@@ -167,10 +170,10 @@ export default async function RouteDetailPage({
         <div className="detail-head">
           <div className="dh-left">
             <div className="dh-tags">
-              <span className={`diff ${diff.className}`} style={{ position: "static" }}>{diff.label}</span>
+              <span className={`diff ${diff.className}`} style={{ position: "static" }}>{diffName(lang, route.difficulty)}</span>
               <span className="dh-type">
                 <RouteTypeIcon type={route.route_type} width={15} height={15} />
-                {ROUTE_TYPES[route.route_type as keyof typeof ROUTE_TYPES].label}
+                {typeName(lang, route.route_type as "yol" | "mtb" | "moto" | "kamp")}
               </span>
             </div>
             <h1>{route.title}</h1>
@@ -192,9 +195,9 @@ export default async function RouteDetailPage({
         </div>
 
         <div className="readout">
-          <div><span>Mesafe</span><b>{km(route.distance_m)} km</b></div>
-          <div><span>İrtifa</span><b className="amber">↑ {route.elevation_gain_m.toLocaleString("tr-TR")} m</b></div>
-          <div><span>Süre</span><b>{route.duration_min ? formatDuration(route.duration_min) : "—"}</b></div>
+          <div><span>{tr(lang, "distance")}</span><b>{km(route.distance_m)} km</b></div>
+          <div><span>{tr(lang, "elevation")}</span><b className="amber">↑ {route.elevation_gain_m.toLocaleString("tr-TR")} m</b></div>
+          <div><span>{tr(lang, "duration")}</span><b>{route.duration_min ? formatDuration(route.duration_min) : "—"}</b></div>
           <div><span>Beğeni</span><b>{route.likes_count}</b></div>
         </div>
 
@@ -220,14 +223,16 @@ export default async function RouteDetailPage({
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 2L4.5 20.3a.5.5 0 00.65.65L12 18l6.85 2.95a.5.5 0 00.65-.65L12 2z" />
               </svg>
-              Başlangıca navigasyon
+              {tr(lang, "nav_to_start")}
             </a>
           )}
           <ShareButton
+            lang={lang}
             title={route.title}
             text={`${route.title} — ${route.province} · ${km(route.distance_m)} km 🚴`}
           />
           <StoryCardButton
+            lang={lang}
             title={route.title}
             province={route.province}
             stats={`${km(route.distance_m)} km  ·  ↑ ${route.elevation_gain_m.toLocaleString("tr-TR")} m  ·  ${formatDuration(route.duration_min)}`}
@@ -238,7 +243,7 @@ export default async function RouteDetailPage({
           />
           {route.gpx_url && (
             <a className="gpx-download" href={route.gpx_url} download>
-              ↓ GPX dosyasını indir
+              {tr(lang, "gpx_dl")}
             </a>
           )}
           {(isOwner || isAdmin) && (

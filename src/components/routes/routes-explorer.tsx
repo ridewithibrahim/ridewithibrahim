@@ -1,9 +1,11 @@
 "use client";
 
+
 import { useEffect, useMemo, useState } from "react";
+import { t, diffName, typeName, type Lang } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/client";
 import { RouteCard } from "@/components/home/route-card";
-import { ROUTE_TYPES, DIFFICULTY } from "@/lib/types";
+import { DIFFICULTY } from "@/lib/types";
 import type { RouteSummary, RouteType, Difficulty } from "@/lib/types";
 
 const TYPES: RouteType[] = ["yol", "mtb", "moto", "kamp"];
@@ -29,7 +31,7 @@ type Row = {
   thumbnail_url: string | null;
 };
 
-export function RoutesExplorer() {
+export function RoutesExplorer({ lang = "tr" }: { lang?: Lang } = {}) {
   const [all, setAll] = useState<RouteSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -141,23 +143,23 @@ export function RoutesExplorer() {
     <>
       <div className="rfilters">
         <div className="fgroup">
-          <span className="lbl">Tür</span>
+          <span className="lbl">{t(lang, "lbl_type")}</span>
           {TYPES.map((t) => (
             <button key={t} className={`chip${type === t ? " active" : ""}`} onClick={() => toggle(type, t, setType, "all")}>
-              {ROUTE_TYPES[t].label}
+              {typeName(lang, t)}
             </button>
           ))}
         </div>
         <div className="fgroup">
-          <span className="lbl">Zorluk</span>
+          <span className="lbl">{t(lang, "lbl_diff")}</span>
           {DIFFS.map((d) => (
             <button key={d} className={`chip d-${DIFFICULTY[d].className}${diff === d ? " active" : ""}`} onClick={() => toggle(diff, d, setDiff, "all")}>
-              {DIFFICULTY[d].label}
+              {diffName(lang, d)}
             </button>
           ))}
         </div>
         <div className="fgroup">
-          <span className="lbl">Mesafe</span>
+          <span className="lbl">{t(lang, "lbl_dist")}</span>
           {DISTANCES.map((m) => (
             <button key={m.key} className={`chip${distance === m.key ? " active" : ""}`} onClick={() => setDistance(distance === m.key ? null : m.key)}>
               {m.label}
@@ -165,16 +167,16 @@ export function RoutesExplorer() {
           ))}
         </div>
         <div className="fgroup">
-          <span className="lbl">Ara</span>
-          <input className="il-input" placeholder="Rota adı, il veya @kullanıcı…" value={query} onChange={(e) => setQuery(e.target.value)} />
+          <span className="lbl">{t(lang, "lbl_search")}</span>
+          <input className="il-input" placeholder={t(lang, "search_ph")} value={query} onChange={(e) => setQuery(e.target.value)} />
           {hasFilter && (
-            <button className="chip clear" onClick={reset}>Temizle ✕</button>
+            <button className="chip clear" onClick={reset}>{t(lang, "reset")} ✕</button>
           )}
         </div>
       </div>
 
       <div className="route-count mono">
-        {loading ? "Yükleniyor…" : `${filtered.length} rota`}
+        {loading ? t(lang, "loading") : `${filtered.length} ${t(lang, "routes_word")}`}
       </div>
 
       {loading ? (
@@ -185,17 +187,17 @@ export function RoutesExplorer() {
         </div>
       ) : error ? (
         <div className="empty" style={{ padding: "60px 20px" }}>
-          Rotalar yüklenemedi.<br />
+          {lang === "en" ? "Couldn't load routes." : "Rotalar yüklenemedi."}<br />
           {error}
         </div>
       ) : filtered.length === 0 ? (
         <div className="empty" style={{ padding: "60px 20px" }}>
-          {all.length === 0 ? "Henüz rota yok. İlk rotayı sen ekle." : "Bu filtreye uyan rota yok."}
+          {all.length === 0 ? (lang === "en" ? "No routes yet — add the first one." : "Henüz rota yok. İlk rotayı sen ekle.") : t(lang, "empty_filtered")}
         </div>
       ) : (
         <div className="route-grid">
           {filtered.map((r) => (
-            <RouteCard key={r.id} route={r} />
+            <RouteCard key={r.id} route={r} lang={lang} />
           ))}
         </div>
       )}

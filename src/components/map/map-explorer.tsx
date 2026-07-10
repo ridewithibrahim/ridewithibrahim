@@ -9,24 +9,25 @@ import type { RouteType, Difficulty } from "@/lib/types";
 import { DIFFICULTY, km, formatDuration } from "@/lib/types";
 import { RouteTypeIcon, PinIcon } from "@/components/home/icons";
 import { createClient } from "@/lib/supabase/client";
+import { t, diffName, type Lang } from "@/lib/i18n";
 
 type CampSpot = { id: string; name: string; lng: number; lat: number; description: string | null };
 
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
-const TYPE_FILTERS: { key: "all" | RouteType; label: string }[] = [
-  { key: "all", label: "Tümü" },
-  { key: "yol", label: "Yol" },
-  { key: "mtb", label: "MTB" },
-  { key: "moto", label: "Moto" },
-  { key: "kamp", label: "Kamp" },
+const TYPE_FILTERS: { key: "all" | RouteType; tk: import("@/lib/i18n").StrKey }[] = [
+  { key: "all", tk: "all" },
+  { key: "yol", tk: "ts_yol" },
+  { key: "mtb", tk: "ty_mtb" },
+  { key: "moto", tk: "ty_moto" },
+  { key: "kamp", tk: "ts_kamp" },
 ];
-const DIFF_FILTERS: { key: "all" | Difficulty; label: string; cls: string }[] = [
-  { key: "all", label: "Tümü", cls: "" },
-  { key: "kolay", label: "Kolay", cls: "d-easy" },
-  { key: "orta", label: "Orta", cls: "d-mod" },
-  { key: "zor", label: "Zor", cls: "d-hard" },
-  { key: "uzman", label: "Uzman", cls: "d-expert" },
+const DIFF_FILTERS: { key: "all" | Difficulty; tk: import("@/lib/i18n").StrKey; cls: string }[] = [
+  { key: "all", tk: "all", cls: "" },
+  { key: "kolay", tk: "d_kolay", cls: "d-easy" },
+  { key: "orta", tk: "d_orta", cls: "d-mod" },
+  { key: "zor", tk: "d_zor", cls: "d-hard" },
+  { key: "uzman", tk: "d_uzman", cls: "d-expert" },
 ];
 
 function toGeoJSON(routes: MapRoute[]) {
@@ -51,7 +52,7 @@ function distKm(a: [number, number], b: [number, number]) {
   return 2 * R * Math.asin(Math.sqrt(s));
 }
 
-export function MapExplorer({ routes }: { routes: MapRoute[] }) {
+export function MapExplorer({ routes, lang = "tr" }: { routes: MapRoute[]; lang?: Lang }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MbMap | null>(null);
   const glRef = useRef<typeof mapboxglType | null>(null);
@@ -140,7 +141,7 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
       return;
     }
     if (!("geolocation" in navigator)) {
-      setLocError("Tarayıcın konum özelliğini desteklemiyor.");
+      setLocError(t(lang, "loc_unsupported"));
       return;
     }
     setLocBusy(true);
@@ -162,7 +163,7 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
       },
       () => {
         setLocBusy(false);
-        setLocError("Konum alınamadı — tarayıcıdan konum izni vermen gerekiyor.");
+        setLocError(t(lang, "loc_denied"));
       },
       { enableHighAccuracy: true, timeout: 10000 },
     );
@@ -257,7 +258,7 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
           .setLngLat([Number(pr.lng), Number(pr.lat)])
           .setHTML(
             `<div class="pop"><h4>⛺ ${pr.name}</h4>${descLine ? `<div class="ploc">${descLine}</div>` : ""}
-            <div class="pop-actions"><a href="${nav}" target="_blank" rel="noopener noreferrer">Navigasyon ⌖</a></div></div>`,
+            <div class="pop-actions"><a href="${nav}" target="_blank" rel="noopener noreferrer">${t(lang, "nav_word")} ⌖</a></div></div>`,
           )
           .addTo(map);
       });
@@ -320,9 +321,9 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
     popupRef.current = new gl.Popup({ offset: 26 })
       .setLngLat(r.coords[Math.floor(r.coords.length / 2)])
       .setHTML(
-        `<div class="pop"><h4>${r.title}</h4><div class="ploc">${r.province} · ${d.label}</div>
+        `<div class="pop"><h4>${r.title}</h4><div class="ploc">${r.province} · ${diffName(lang, r.difficulty)}</div>
         <div class="pstats"><span><b>${km(r.distanceM)}</b> km</span><span>↑<b>${r.elevationGainM.toLocaleString("tr-TR")}</b> m</span><span><b>${formatDuration(r.durationMin)}</b></span></div>
-        <div class="pop-actions"><a href="/rotalar/${r.id}">Detay →</a><a href="${nav}" target="_blank" rel="noopener noreferrer">Navigasyon ⌖</a></div></div>`,
+        <div class="pop-actions"><a href="/rotalar/${r.id}">${t(lang, "detail_link")} →</a><a href="${nav}" target="_blank" rel="noopener noreferrer">${t(lang, "nav_word")} ⌖</a></div></div>`,
       )
       .addTo(map);
   }, [selected, ready, routes]);
@@ -332,18 +333,18 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
       <div className="side">
         <div className="filters" style={{ position: "sticky", top: 0, margin: "-14px -14px 12px", background: "var(--bg)" }}>
           <div className="fgroup">
-            <span className="lbl">Tür</span>
+            <span className="lbl">{t(lang, "lbl_type")}</span>
             {TYPE_FILTERS.map((f) => (
               <button key={f.key} className={`chip${type === f.key ? " active" : ""}`} onClick={() => { setType(f.key); setSelected(null); }}>
-                {f.label}
+                {t(lang, f.tk)}
               </button>
             ))}
           </div>
           <div className="fgroup">
-            <span className="lbl">Zorluk</span>
+            <span className="lbl">{t(lang, "lbl_diff")}</span>
             {DIFF_FILTERS.map((f) => (
               <button key={f.key} className={`chip ${f.cls}${diff === f.key ? " active" : ""}`} onClick={() => { setDiff(f.key); setSelected(null); }}>
-                {f.label}
+                {t(lang, f.tk)}
               </button>
             ))}
           </div>
@@ -354,7 +355,7 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
               disabled={locBusy}
               type="button"
             >
-              {locBusy ? "Konum alınıyor…" : userLoc ? "📍 Yakınımdakiler ✕" : "📍 Konumum"}
+              {locBusy ? t(lang, "getting_loc") : userLoc ? t(lang, "nearby_on") : t(lang, "my_location")}
             </button>
             <button
               className={`chip loc-chip${showCamps ? " active" : ""}`}
@@ -362,9 +363,9 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
               disabled={campsBusy}
               type="button"
             >
-              {campsBusy ? "Yükleniyor…" : "⛺ Kamp noktaları"}
+              {campsBusy ? t(lang, "loading") : t(lang, "camp_chip")}
             </button>
-            <div className="count"><b>{listRoutes.length}</b> rota</div>
+            <div className="count"><b>{listRoutes.length}</b> {t(lang, "routes_word")}</div>
           </div>
           {locError && <div className="loc-err">{locError}</div>}
         </div>
@@ -373,15 +374,15 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
           <div className="empty">
             {type === "kamp" ? (
               <>
-                ⛺ Kamp noktaları haritada gösteriliyor.
+                {t(lang, "camps_on_map")}
                 <br />
-                Henüz kamp <b>rotası</b> paylaşılmamış — ilkini sen ekleyebilirsin!
+                {t(lang, "no_camp_routes")}
               </>
             ) : (
               <>
-                Bu filtreye uyan rota yok.
+                {t(lang, "empty_filtered")}
                 <br />
-                Filtreleri sıfırlamayı dene.
+                {t(lang, "empty_try_reset")}
               </>
             )}
           </div>
@@ -400,11 +401,11 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
                   <div className="loc">
                     <PinIcon width={11} height={11} /> {r.province}
                     {typeof r.distanceKm === "number" && (
-                      <span className="dist-tag"> · ≈ {r.distanceKm < 1 ? 1 : Math.round(r.distanceKm)} km uzakta</span>
+                      <span className="dist-tag"> · ≈ {r.distanceKm < 1 ? 1 : Math.round(r.distanceKm)} {t(lang, "km_away")}</span>
                     )}
                   </div>
                   <div className="stats">
-                    <span className="diff-tag" style={{ color: d.color, border: `1px solid ${d.color}` }}>{d.label}</span>
+                    <span className="diff-tag" style={{ color: d.color, border: `1px solid ${d.color}` }}>{diffName(lang, r.difficulty)}</span>
                     <span><b>{km(r.distanceM)}</b> km</span>
                     <span>↑ <b>{r.elevationGainM.toLocaleString("tr-TR")}</b> m</span>
                     <span><b>{formatDuration(r.durationMin)}</b></span>
@@ -418,7 +419,7 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Google navigasyon"
-                    title="Navigasyonu başlat"
+                    title={t(lang, "start_nav")}
                     onClick={(e) => e.stopPropagation()}
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -429,7 +430,7 @@ export function MapExplorer({ routes }: { routes: MapRoute[] }) {
                     className="lr-btn"
                     href={`/rotalar/${r.id}`}
                     aria-label="Rota detayı"
-                    title="Detaya git"
+                    title={t(lang, "go_detail")}
                     onClick={(e) => e.stopPropagation()}
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
