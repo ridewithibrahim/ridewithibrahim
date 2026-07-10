@@ -34,7 +34,7 @@ export default async function EventsPage() {
         ) : (
           <div className="evt-grid">
             {events.map((e) => (
-              <EventCard key={e.id} event={e} />
+              <EventCard key={e.id} event={e} lang={lang} />
             ))}
           </div>
         )}

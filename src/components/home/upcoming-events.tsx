@@ -26,7 +26,7 @@ export function UpcomingEvents({ events, lang = "tr" }: { lang?: Lang; events: E
         ) : (
           <div className="evt-grid">
             {events.map((e) => (
-              <EventCard key={e.id} event={e} reveal />
+              <EventCard key={e.id} event={e} reveal lang={lang} />
             ))}
           </div>
         )}

@@ -119,7 +119,7 @@ export default async function EventDetailPage({
   return (
     <main className="detail">
       <div className="wrap detail-wrap">
-        <Link href="/bulusmalar" className="detail-back">← Buluşmalar</Link>
+        <Link href="/bulusmalar" className="detail-back">← {tt(lang, "nav_meetups")}</Link>
 
         <div className="detail-head">
           <div className="dh-left">
@@ -135,8 +135,7 @@ export default async function EventDetailPage({
               {host && <Link href={`/profil/${host}`} className="dh-author">· @{host}</Link>}
             </div>
           </div>
-          <JoinButton
-            eventId={ev.id}
+          <JoinButton lang={lang}             eventId={ev.id}
             initialJoined={joined}
             initialCount={count}
             capacity={ev.capacity}
@@ -145,8 +144,8 @@ export default async function EventDetailPage({
         </div>
 
         <div className="readout">
-          <div><span>Tarih</span><b style={{ fontSize: 15 }}>{dateStr}</b></div>
-          <div><span>Saat</span><b>{timeStr}</b></div>
+          <div><span>{tt(lang, "date_word")}</span><b style={{ fontSize: 15 }}>{dateStr}</b></div>
+          <div><span>{tt(lang, "time_word")}</span><b>{timeStr}</b></div>
           <div><span>{tt(lang, "attendees_word")}</span><b className="amber">{count}{ev.capacity ? ` / ${ev.capacity}` : ""}</b></div>
         </div>
 

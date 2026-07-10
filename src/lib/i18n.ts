@@ -206,6 +206,16 @@ const STR = {
   msg_start_fail: ["Sohbet başlatılamadı.", "Couldn't start the conversation."],
   all_types: ["Tüm türler", "All types"],
   bike_word: ["Bisiklet", "Bike"],
+  save: ["Kaydet", "Save"],
+  saved_done: ["Kaydedildi", "Saved"],
+  likes_word: ["Beğeni", "Likes"],
+  edit: ["Düzenle", "Edit"],
+  add_route: ["Rota ekle", "Add route"],
+  going_count: ["katılımcı", "going"],
+  date_word: ["Tarih", "Date"],
+  time_word: ["Saat", "Time"],
+  leave_event: ["Katılımdan çık", "Leave"],
+  full_event: ["Kontenjan dolu", "Fully booked"],
 } as const;
 
 export type StrKey = keyof typeof STR;

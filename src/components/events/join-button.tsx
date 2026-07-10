@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { t, type Lang } from "@/lib/i18n";
 
 export function JoinButton({
   eventId,
@@ -10,12 +11,14 @@ export function JoinButton({
   initialCount,
   capacity,
   isAuthed,
+  lang = "tr",
 }: {
   eventId: string;
   initialJoined: boolean;
   initialCount: number;
   capacity: number | null;
   isAuthed: boolean;
+  lang?: Lang;
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -71,7 +74,7 @@ export function JoinButton({
       disabled={busy || full}
       aria-pressed={joined}
     >
-      {full ? "Kontenjan dolu" : joined ? "Katılımdan çık" : "Katıl"}
+      {full ? t(lang, "full_event") : joined ? t(lang, "leave_event") : t(lang, "join")}
     </button>
   );
 }

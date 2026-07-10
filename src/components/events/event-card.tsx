@@ -1,11 +1,16 @@
 import Link from "next/link";
+import { t, type Lang } from "@/lib/i18n";
 import type { EventSummary } from "@/lib/types";
 import { ROUTE_TYPES, monthShort, dayOfMonth } from "@/lib/types";
 import { PinIcon } from "@/components/home/icons";
 
 const AVATAR_COLORS = ["#F2B14C", "#5FB8A3", "#7FC2E0", "#54B97C", "#E2823F", "#D45D49", "#5BA3D0"];
 
-export function EventCard({ event, reveal = false }: { event: EventSummary; reveal?: boolean }) {
+export function EventCard({ event, reveal = false,
+  lang = "tr",
+}: { event: EventSummary; reveal?: boolean;
+  lang?: Lang;
+}) {
   const initials = event.title
     .split(" ")
     .slice(0, 3)
@@ -31,9 +36,9 @@ export function EventCard({ event, reveal = false }: { event: EventSummary; reve
               ))}
               {extra > 0 && <span className="more">+{extra}</span>}
             </div>
-            <span className="e-count">{event.attendeeCount} katılımcı</span>
+            <span className="e-count">{event.attendeeCount} {t(lang, "going_count")}</span>
           </div>
-          <Link className="btn btn-primary btn-sm" href={`/bulusmalar/${event.id}`}>Detay</Link>
+          <Link className="btn btn-primary btn-sm" href={`/bulusmalar/${event.id}`}>{t(lang, "detail_link")}</Link>
         </div>
       </div>
     </article>

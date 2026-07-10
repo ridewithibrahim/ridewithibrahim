@@ -20,7 +20,7 @@ export default async function RoutesPage() {
             <h2>{t(lang, "hero_explore")}</h2>
           </div>
           <Link className="btn btn-primary btn-sm" href="/rotalar/yeni">
-            <PlusIcon width={16} height={16} /> Rota ekle
+            <PlusIcon width={16} height={16} /> {t(lang, "add_route")}
           </Link>
         </div>
 

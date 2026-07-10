@@ -165,7 +165,7 @@ export default async function RouteDetailPage({
   return (
     <main className="detail">
       <div className="wrap detail-wrap">
-        <Link href="/rotalar" className="detail-back">← Rotalar</Link>
+        <Link href="/rotalar" className="detail-back">← {tr(lang, "nav_routes")}</Link>
 
         <div className="detail-head">
           <div className="dh-left">
@@ -185,6 +185,7 @@ export default async function RouteDetailPage({
             </div>
           </div>
           <LikeSaveButtons
+            lang={lang}
             routeId={route.id}
             liked={liked}
             saved={saved}
@@ -198,7 +199,7 @@ export default async function RouteDetailPage({
           <div><span>{tr(lang, "distance")}</span><b>{km(route.distance_m)} km</b></div>
           <div><span>{tr(lang, "elevation")}</span><b className="amber">↑ {route.elevation_gain_m.toLocaleString("tr-TR")} m</b></div>
           <div><span>{tr(lang, "duration")}</span><b>{route.duration_min ? formatDuration(route.duration_min) : "—"}</b></div>
-          <div><span>Beğeni</span><b>{route.likes_count}</b></div>
+          <div><span>{tr(lang, "likes_word")}</span><b>{route.likes_count}</b></div>
         </div>
 
         {route.thumbnail_url && (
@@ -249,7 +250,7 @@ export default async function RouteDetailPage({
           {(isOwner || isAdmin) && (
             <span className="owner-actions">
               {isOwner && (
-                <Link className="btn btn-ghost btn-sm" href={`/rotalar/${route.id}/duzenle`}>Düzenle</Link>
+                <Link className="btn btn-ghost btn-sm" href={`/rotalar/${route.id}/duzenle`}>{tr(lang, "edit")}</Link>
               )}
               <DeleteRouteButton routeId={route.id} />
             </span>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { t, type Lang } from "@/lib/i18n";
 import { HeartIcon, SaveIcon } from "@/components/home/icons";
 
 export function LikeSaveButtons({
@@ -11,6 +12,7 @@ export function LikeSaveButtons({
   saved: initSaved,
   likes: initLikes,
   isAuthed,
+  lang = "tr",
 }: {
   routeId: string;
   liked: boolean;
@@ -18,6 +20,7 @@ export function LikeSaveButtons({
   likes: number;
   saves?: number;
   isAuthed: boolean;
+  lang?: Lang;
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -101,7 +104,7 @@ export function LikeSaveButtons({
           aria-pressed={saved}
         >
           <SaveIcon width={16} height={16} />
-          <span>{saved ? "Kaydedildi" : "Kaydet"}</span>
+          <span>{saved ? t(lang, "saved_done") : t(lang, "save")}</span>
         </button>
       </div>
       {err && <p className="ls-err">İşlem başarısız: {err}</p>}
