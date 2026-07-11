@@ -867,3 +867,18 @@ button.card-like:disabled { opacity: .7; }
 .ride-row { display: flex; gap: 10px; width: 100%; max-width: 420px; }
 .ride-row .ride-big { flex: 1; }
 .ride-paused { color: var(--amber); font-weight: 800; }
+
+/* baslik aksiyon butonlari yan yana */
+.head-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* kayit butonu: kirmizi REC noktasi */
+.btn-rec { position: relative; }
+.btn-rec::before { content: ""; width: 9px; height: 9px; border-radius: 50%;
+  background: #e0564a; display: inline-block; margin-right: 8px; flex: none;
+  box-shadow: 0 0 0 0 rgba(224, 86, 74, .5); animation: rec-pulse 1.6s infinite; }
+@keyframes rec-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(224, 86, 74, .45); }
+  70% { box-shadow: 0 0 0 7px rgba(224, 86, 74, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(224, 86, 74, 0); }
+}
+a.chip.btn-rec { display: inline-flex; align-items: center; text-decoration: none; }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { type Lang, typeName, diffName } from "@/lib/i18n";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -269,6 +270,9 @@ export function RouteForm({ lang = "tr" }: { lang?: Lang } = {}) {
           <button type="button" className={`chip${mode === "draw" ? " active" : ""}`} onClick={() => setMode("draw")}>
             {L("🖊 Haritada çiz", "🖊 Draw on the map")}
           </button>
+          <Link href="/kayit" className="chip btn-rec">
+            {L("Sürüşünü kaydet (GPS)", "Record your ride (GPS)")}
+          </Link>
         </div>
       </div>
 

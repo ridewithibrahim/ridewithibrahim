@@ -19,12 +19,14 @@ export default async function RoutesPage() {
             <span className="eyebrow">{lang === "en" ? "All routes" : "Tüm rotalar"}</span>
             <h2>{t(lang, "hero_explore")}</h2>
           </div>
-          <Link className="btn btn-ghost btn-sm" href="/kayit">
-            {t(lang, "record_route")}
-          </Link>
-          <Link className="btn btn-primary btn-sm" href="/rotalar/yeni">
-            <PlusIcon width={16} height={16} /> {t(lang, "add_route")}
-          </Link>
+          <div className="head-actions">
+            <Link className="btn btn-primary btn-sm" href="/rotalar/yeni">
+              <PlusIcon width={16} height={16} /> {t(lang, "add_route")}
+            </Link>
+            <Link className="btn btn-ghost btn-sm btn-rec" href="/kayit">
+              {t(lang, "record_route")}
+            </Link>
+          </div>
         </div>
 
         <RoutesExplorer lang={lang} />
