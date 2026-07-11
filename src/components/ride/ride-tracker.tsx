@@ -1,9 +1,7 @@
 "use client";
 
-// Sürüş Modu — iki vites:
-//  follow: mevcut rotayı canlı takip et, bitişte otomatik "Tamamlandı"
-//  record: sürülen izi kaydet, rota formuna hazır çizgi olarak aktar
-// Web sınırı: ekran açık kalmalı (Wake Lock ile uyumayı engelliyoruz).
+// Sürüş Modu v2 — takip + kayıt, duraklat/devam, hız, sapma hassasiyeti.
+// Web sınırı: ekran açık kalmalı (Wake Lock uyumayı engeller).
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
@@ -13,6 +11,11 @@ import type { Lang } from "@/lib/i18n";
 type LngLat = [number, number];
 
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
+const SENS = [
+  { key: "hassas", m: 40 },
+  { key: "normal", m: 80 },
+  { key: "rahat", m: 150 },
+] as const;
 
 function havKm(a: LngLat, b: LngLat): number {
   const R = 6371;
@@ -24,7 +27,6 @@ function havKm(a: LngLat, b: LngLat): number {
   return 2 * R * Math.asin(Math.sqrt(s));
 }
 
-/** Uzun izi forma taşımadan önce seyrelt (maks ~150 nokta). */
 function simplify(pts: LngLat[], max = 150): LngLat[] {
   if (pts.length <= max) return pts;
   const step = Math.ceil(pts.length / max);
@@ -62,21 +64,27 @@ export function RideTracker({
   const markerRef = useRef<import("mapbox-gl").Marker | null>(null);
   const watchRef = useRef<number | null>(null);
   const wakeRef = useRef<{ release: () => Promise<void> } | null>(null);
-  const trailRef = useRef<LngLat[]>([]);
-  const lastPtRef = useRef<LngLat | null>(null);
-  const offSinceRef = useRef<number | null>(null);
-  const startTsRef = useRef<number>(0);
 
-  const [status, setStatus] = useState<"idle" | "live" | "saving" | "done">("idle");
+  // iz: segment listesi (duraklamada segment kapanır, ışınlanma çizgisi oluşmaz)
+  const segsRef = useRef<LngLat[][]>([]);
+  const lastPtRef = useRef<LngLat | null>(null);
+  const lastRawRef = useRef<{ pt: LngLat; ts: number } | null>(null);
+  const offSinceRef = useRef<number | null>(null);
+
+  // süre: birikmiş + aktif dilim
+  const accumRef = useRef(0);
+  const segStartRef = useRef<number | null>(null);
+
+  const [status, setStatus] = useState<"idle" | "live" | "paused" | "saving" | "done">("idle");
   const [gpsErr, setGpsErr] = useState("");
-  const [ready, setReady] = useState(false);
   const [distKm, setDistKm] = useState(0); // record: kaydedilen · follow: kalan
   const [pct, setPct] = useState(0);
+  const [speed, setSpeed] = useState(0); // km/s (yumuşatılmış)
   const [elapsed, setElapsed] = useState(0);
   const [offRoute, setOffRoute] = useState(false);
   const [nearEnd, setNearEnd] = useState(false);
+  const [sensIdx, setSensIdx] = useState(1); // normal
 
-  // rota kümülatif mesafeleri (follow)
   const cumRef = useRef<number[]>([]);
   useEffect(() => {
     if (mode !== "follow" || !route) return;
@@ -88,7 +96,7 @@ export function RideTracker({
     setDistKm(cum[cum.length - 1]);
   }, [mode, route]);
 
-  // ---- harita kur ----
+  // ---- harita ----
   useEffect(() => {
     if (!TOKEN || !mapEl.current) return;
     let cancelled = false;
@@ -125,7 +133,7 @@ export function RideTracker({
         }
         map.addSource("trail", {
           type: "geojson",
-          data: { type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: [] } } as never,
+          data: { type: "Feature", properties: {}, geometry: { type: "MultiLineString", coordinates: [] } } as never,
         });
         map.addLayer({
           id: "trail-line",
@@ -134,11 +142,15 @@ export function RideTracker({
           paint: { "line-color": "#5FB8A3", "line-width": 5 },
           layout: { "line-cap": "round", "line-join": "round" },
         });
-        setReady(true);
       });
     })();
+    const onVis = () => {
+      if (document.visibilityState === "visible" && watchRef.current !== null) acquireWake();
+    };
+    document.addEventListener("visibilitychange", onVis);
     return () => {
       cancelled = true;
+      document.removeEventListener("visibilitychange", onVis);
       stopAll();
       mapRef.current?.remove();
       mapRef.current = null;
@@ -149,7 +161,10 @@ export function RideTracker({
   // süre sayacı
   useEffect(() => {
     if (status !== "live") return;
-    const t = setInterval(() => setElapsed((Date.now() - startTsRef.current) / 1000), 1000);
+    const t = setInterval(() => {
+      const seg = segStartRef.current ? (Date.now() - segStartRef.current) / 1000 : 0;
+      setElapsed(accumRef.current + seg);
+    }, 1000);
     return () => clearInterval(t);
   }, [status]);
 
@@ -170,13 +185,42 @@ export function RideTracker({
     }
   }
 
+  function trailFlat(): LngLat[] {
+    return segsRef.current.flat();
+  }
+
+  function trailDist(): number {
+    let s = 0;
+    for (const seg of segsRef.current) {
+      for (let i = 1; i < seg.length; i++) s += havKm(seg[i - 1], seg[i]);
+    }
+    return s;
+  }
+
+  function updateSpeed(pt: LngLat, ts: number) {
+    const prev = lastRawRef.current;
+    lastRawRef.current = { pt, ts };
+    if (!prev) return;
+    const dtH = (ts - prev.ts) / 3600000;
+    if (dtH <= 0) return;
+    const v = havKm(prev.pt, pt) / dtH;
+    if (v > 90) return; // GPS sıçraması
+    setSpeed((old) => Math.max(0, old * 0.6 + v * 0.4));
+  }
+
   function onPos(p: GeolocationPosition) {
+    // doğruluk filtresi: 40 m'den kötü fix'ler izi kirletmesin
+    if (p.coords.accuracy != null && p.coords.accuracy > 40) return;
+
     const pt: LngLat = [p.coords.longitude, p.coords.latitude];
     const map = mapRef.current;
     const gl = glRef.current;
     if (!map || !gl) return;
 
-    // canlı nokta
+    const spd = p.coords.speed;
+    if (spd != null && spd >= 0) setSpeed((old) => Math.max(0, old * 0.6 + spd * 3.6 * 0.4));
+    else updateSpeed(pt, p.timestamp);
+
     if (!markerRef.current) {
       const el = document.createElement("div");
       el.className = "ride-dot";
@@ -188,27 +232,21 @@ export function RideTracker({
     }
 
     if (mode === "record") {
+      const seg = segsRef.current[segsRef.current.length - 1];
       const last = lastPtRef.current;
       if (!last || havKm(last, pt) * 1000 >= 8) {
-        trailRef.current.push(pt);
+        seg.push(pt);
         lastPtRef.current = pt;
-        if (trailRef.current.length >= 2) {
-          const total = trailRef.current.reduce(
-            (s, c, i) => (i === 0 ? 0 : s + havKm(trailRef.current[i - 1], c)),
-            0,
-          );
-          setDistKm(total);
-        }
+        setDistKm(trailDist());
         (map.getSource("trail") as import("mapbox-gl").GeoJSONSource | undefined)?.setData({
           type: "Feature",
           properties: {},
-          geometry: { type: "LineString", coordinates: trailRef.current },
+          geometry: { type: "MultiLineString", coordinates: segsRef.current },
         } as never);
       }
       return;
     }
 
-    // follow: en yakın rota noktası → ilerleme
     if (!route) return;
     let best = 0;
     let bestD = Infinity;
@@ -225,8 +263,8 @@ export function RideTracker({
     setPct(Math.min(100, Math.round((doneKm / total) * 100)));
     setDistKm(Math.max(0, total - doneKm));
 
-    // rotadan sapma: 80 m'den uzakta 15 sn
-    if (bestD * 1000 > 80) {
+    const limit = SENS[sensIdx].m;
+    if (bestD * 1000 > limit) {
       if (offSinceRef.current === null) offSinceRef.current = Date.now();
       else if (Date.now() - offSinceRef.current > 15000) setOffRoute(true);
     } else {
@@ -234,9 +272,16 @@ export function RideTracker({
       setOffRoute(false);
     }
 
-    // bitişe yaklaşma
     const endD = havKm(route.coords[route.coords.length - 1], pt) * 1000;
     setNearEnd(endD < 80 && doneKm / total > 0.7);
+  }
+
+  function startWatch() {
+    watchRef.current = navigator.geolocation.watchPosition(onPos, () => {
+      setGpsErr(L("Konum alınamadı — tarayıcıdan konum izni vermen gerekiyor.", "Couldn't get your location — please allow location access."));
+      setStatus("idle");
+      stopAll();
+    }, { enableHighAccuracy: true, maximumAge: 2000, timeout: 20000 });
   }
 
   function begin() {
@@ -245,18 +290,36 @@ export function RideTracker({
       return;
     }
     setGpsErr("");
-    startTsRef.current = Date.now();
+    accumRef.current = 0;
+    segStartRef.current = Date.now();
+    segsRef.current = [[]];
+    lastPtRef.current = null;
+    lastRawRef.current = null;
     setStatus("live");
     acquireWake();
-    const onVis = () => {
-      if (document.visibilityState === "visible") acquireWake();
-    };
-    document.addEventListener("visibilitychange", onVis);
-    watchRef.current = navigator.geolocation.watchPosition(onPos, () => {
-      setGpsErr(L("Konum alınamadı — tarayıcıdan konum izni vermen gerekiyor.", "Couldn't get your location — please allow location access."));
-      setStatus("idle");
-      stopAll();
-    }, { enableHighAccuracy: true, maximumAge: 2000, timeout: 20000 });
+    startWatch();
+  }
+
+  function pause() {
+    if (segStartRef.current) {
+      accumRef.current += (Date.now() - segStartRef.current) / 1000;
+      segStartRef.current = null;
+    }
+    stopAll();
+    setSpeed(0);
+    setStatus("paused");
+  }
+
+  function resume() {
+    segStartRef.current = Date.now();
+    if (mode === "record") {
+      segsRef.current.push([]); // yeni segment — molada yer değiştiyse çizgi bağlanmaz
+      lastPtRef.current = null;
+    }
+    lastRawRef.current = null;
+    setStatus("live");
+    acquireWake();
+    startWatch();
   }
 
   async function finishFollow() {
@@ -282,7 +345,7 @@ export function RideTracker({
 
   function stopRecord() {
     stopAll();
-    const pts = simplify(trailRef.current);
+    const pts = simplify(trailFlat());
     if (pts.length < 2) {
       setGpsErr(L("Kayıt çok kısa — en az iki nokta gerekli.", "Recording too short — at least two points needed."));
       setStatus("idle");
@@ -304,22 +367,42 @@ export function RideTracker({
     );
   }
 
+  const sensLabel =
+    SENS[sensIdx].key === "hassas"
+      ? L("Hassas", "Strict")
+      : SENS[sensIdx].key === "rahat"
+        ? L("Rahat", "Relaxed")
+        : "Normal";
+
   return (
     <div className="ride-wrap">
       <div ref={mapEl} className="ride-map" />
 
-      {/* üst bilgi çubuğu */}
       <div className="ride-top">
-        <div className="ride-title">
-          {mode === "follow" ? route?.title : L("⏺ Rota kaydı", "⏺ Route recording")}
+        <div className="ride-title-row">
+          <div className="ride-title">
+            {mode === "follow" ? route?.title : L("⏺ Rota kaydı", "⏺ Route recording")}
+          </div>
+          {mode === "follow" && (
+            <button
+              type="button"
+              className="ride-sens"
+              onClick={() => setSensIdx((i) => (i + 1) % SENS.length)}
+              title={L("Sapma uyarısı hassasiyeti", "Off-route alert sensitivity")}
+            >
+              🎯 {sensLabel} · {SENS[sensIdx].m}m
+            </button>
+          )}
         </div>
-        {status === "live" && (
+        {(status === "live" || status === "paused") && (
           <div className="ride-stats mono">
             <span>
-              <b>{distKm.toFixed(1)}</b> km {mode === "follow" ? L("kaldı", "left") : ""}
+              <b>{distKm.toFixed(1)}</b> km{mode === "follow" ? ` ${L("kaldı", "left")}` : ""}
             </span>
             {mode === "follow" && <span><b>%{pct}</b></span>}
+            <span><b>{speed.toFixed(1)}</b> km/s</span>
             <span><b>{fmtClock(elapsed)}</b></span>
+            {status === "paused" && <span className="ride-paused">⏸ {L("Duraklatıldı", "Paused")}</span>}
           </div>
         )}
       </div>
@@ -329,34 +412,49 @@ export function RideTracker({
       )}
       {gpsErr && <div className="ride-offroute">{gpsErr}</div>}
 
-      {/* alt kontroller */}
       <div className="ride-controls">
         {status === "idle" && (
           <button type="button" className="btn btn-primary ride-big" onClick={begin}>
             {mode === "follow" ? L("▶ Sürüşü başlat", "▶ Start ride") : L("⏺ Kaydı başlat", "⏺ Start recording")}
           </button>
         )}
-        {status === "live" && mode === "follow" && (
-          <button
-            type="button"
-            className={`btn ride-big ${nearEnd ? "btn-primary" : "btn-ghost"}`}
-            onClick={finishFollow}
-          >
-            {nearEnd ? L("🏁 Bitir — vardın!", "🏁 Finish — you made it!") : L("🏁 Sürüşü bitir", "🏁 End ride")}
-          </button>
+
+        {(status === "live" || status === "paused") && (
+          <div className="ride-row">
+            {status === "live" ? (
+              <button type="button" className="btn btn-ghost ride-big" onClick={pause}>
+                ⏸ {L("Duraklat", "Pause")}
+              </button>
+            ) : (
+              <button type="button" className="btn btn-primary ride-big" onClick={resume}>
+                ▶ {L("Devam", "Resume")}
+              </button>
+            )}
+            {mode === "follow" ? (
+              <button
+                type="button"
+                className={`btn ride-big ${nearEnd ? "btn-primary" : "btn-ghost"}`}
+                onClick={finishFollow}
+              >
+                {nearEnd ? L("🏁 Bitir — vardın!", "🏁 Finish!") : L("🏁 Bitir", "🏁 Finish")}
+              </button>
+            ) : (
+              <button type="button" className="btn btn-ghost ride-big" onClick={stopRecord}>
+                ⏹ {L("Durdur", "Stop")}
+              </button>
+            )}
+          </div>
         )}
-        {status === "live" && mode === "record" && (
-          <button type="button" className="btn btn-primary ride-big" onClick={stopRecord}>
-            {L("⏹ Durdur ve rotaya dönüştür", "⏹ Stop & turn into a route")}
-          </button>
-        )}
+
         {status === "saving" && <div className="ride-note">{L("Kaydediliyor…", "Saving…")}</div>}
         {status === "live" && (
           <p className="ride-note">{L("Ekran, sürüş boyunca açık kalır.", "The screen stays awake during your ride.")}</p>
         )}
+        {status === "paused" && mode === "record" && (
+          <p className="ride-note">{L("Molada yer değişirse iz bağlanmaz — içiniz rahat.", "If you move during the break, the trail won't connect — no worries.")}</p>
+        )}
       </div>
 
-      {/* bitiş kutlaması */}
       {status === "done" && route && (
         <div className="ride-finish">
           <div className="ride-finish-card">

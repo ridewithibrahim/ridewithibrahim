@@ -858,3 +858,12 @@ button.card-like:disabled { opacity: .7; }
 .btn-ride { border: 1.5px solid rgba(242,177,76,.6); color: var(--amber);
   background: rgba(242,177,76,.10); font-weight: 700; }
 .btn-ride:hover { background: rgba(242,177,76,.2); transform: translateY(-1px); }
+
+/* surus modu v2 */
+.ride-title-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.ride-sens { background: rgba(95,184,163,.12); border: 1px solid rgba(95,184,163,.4);
+  color: var(--spruce); font-size: 11.5px; font-weight: 700; padding: 4px 10px;
+  border-radius: 999px; cursor: pointer; white-space: nowrap; }
+.ride-row { display: flex; gap: 10px; width: 100%; max-width: 420px; }
+.ride-row .ride-big { flex: 1; }
+.ride-paused { color: var(--amber); font-weight: 800; }
