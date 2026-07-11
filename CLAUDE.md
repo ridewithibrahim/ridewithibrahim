@@ -147,6 +147,12 @@ yer değişse ışınlanma çizgisi oluşmaz, yayında flatten edilir), canlı h
 noktalardan, 0.6/0.4 yumuşatma, >90 km/s sıçrama filtreli), 🎯 sapma hassasiyeti çipi
 (Hassas 40m / Normal 80m / Rahat 150m), GPS doğruluk filtresi (accuracy>40m atılır).
 
+## 🎛 Admin denetim masası (/admin)
+profiles.is_admin=true olan hesaba özel (değilse anasayfaya yönlenir). Özet sayılar (üye/rota/
+yorum/tamamlama/şikâyet) + listeler: 🚨 şikâyetler (reports admin-read RLS 0011'de hazırdı),
+son üyeler/rotalar/yorumlar/tamamlamalar. Join yasak kuralına uygun: adlar/başlıklar Map ile.
+TR-only (tek admin). Navbar linki yok — /admin yazılır ya da yer imi.
+
 ## Tasarım kimliği
 Zemin #0C1512, amber #F2B14C, spruce #5FB8A3. Fontlar: Archivo / Hanken Grotesk / Space Mono.
 Kart dili: küçük kare ikon butonlar, pill chip'ler, ince --line kenarlıklar; tehlikeli eylemler sessiz

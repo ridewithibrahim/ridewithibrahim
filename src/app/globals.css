@@ -882,3 +882,20 @@ button.card-like:disabled { opacity: .7; }
   100% { box-shadow: 0 0 0 0 rgba(224, 86, 74, 0); }
 }
 a.chip.btn-rec { display: inline-flex; align-items: center; text-decoration: none; }
+
+/* ==== admin denetim masasi ==== */
+.adm-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; margin-bottom: 28px; }
+.adm-stats > div { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; text-align: center; }
+.adm-stats b { display: block; font-size: 26px; font-family: var(--font-mono), monospace; color: var(--amber); }
+.adm-stats span { font-size: 11.5px; color: var(--ink-faint); letter-spacing: .06em; text-transform: uppercase; }
+.adm-stats .adm-alert b { color: #e0564a; }
+.adm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 18px; }
+.adm-sec { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; margin-bottom: 6px; }
+.adm-sec h3 { font-size: 15px; margin-bottom: 12px; }
+.adm-row { display: flex; justify-content: space-between; gap: 14px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 13.5px; align-items: baseline; }
+.adm-row:first-of-type { border-top: 0; }
+.adm-row a { color: var(--spruce); }
+.adm-row em { color: var(--ink-faint); font-style: normal; }
+.adm-row time { color: var(--ink-faint); font-size: 11.5px; font-family: var(--font-mono), monospace; white-space: nowrap; }
+.adm-report { background: rgba(224,86,74,.06); border-radius: 8px; padding: 8px 10px; border-top: 0; margin-bottom: 6px; }
+.adm-empty { color: var(--ink-faint); font-size: 13.5px; }
