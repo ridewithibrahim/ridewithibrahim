@@ -224,6 +224,7 @@ const STR = {
   start_ride: ["▶ Sürüşü başlat", "▶ Start ride"],
   record_route: ["Rota kaydet", "Record a route"],
   record_ride_opt: ["Sürüşünü kaydet (GPS)", "Record your ride (GPS)"],
+  admin_panel: ["Denetim", "Admin"],
 } as const;
 
 export type StrKey = keyof typeof STR;

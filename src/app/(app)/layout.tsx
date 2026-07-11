@@ -13,6 +13,16 @@ export default async function AppLayout({
   } = await supabase.auth.getUser();
   const username = (user?.user_metadata?.username as string | undefined) ?? null;
 
+  let isAdmin = false;
+  if (user) {
+    const { data: adm } = await supabase
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", user.id)
+      .maybeSingle<{ is_admin: boolean }>();
+    isAdmin = !!adm?.is_admin;
+  }
+
   let unread = 0;
   if (user) {
     const { count } = await supabase
@@ -27,7 +37,7 @@ export default async function AppLayout({
 
   return (
     <>
-      <Navbar username={username} unread={unread} lang={lang} />
+      <Navbar username={username} unread={unread} lang={lang} admin={isAdmin} />
       {children}
     </>
   );
