@@ -232,6 +232,9 @@ export default async function RouteDetailPage({
             initialCount={doneCount ?? 0}
             lang={lang}
           />
+          <Link className="btn btn-sm btn-ride" href={`/surus/${route.id}`}>
+            {tr(lang, "start_ride")}
+          </Link>
         </div>
 
         <div className="readout">

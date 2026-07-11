@@ -135,6 +135,15 @@ Fazlar: 2a çerçeve ✅ · 2b ana sayfa ✅ · 2c keşif (harita/rotalar/detay)
 2e formlar (rota paylaş/çiz/düzenle, buluşma aç, ayarlar, silme onayları) ✅ — SİTE %100 İKİ DİLLİ. Not: zod doğrulama mesajları TR kaldı (kabul edilen istisna); formlarda desen: bileşen içi `L(tr,en)` yardımcısı.
 Ayrıca /en statik İngilizce tanıtım sayfası + hreflang mevcut.
 
+## 🗺 Sürüş Modu (ride-tracker.tsx)
+İki vites: **takip** (/surus/[id] — rota çizgisi + canlı mavi nokta, kalan km/%, sapma uyarısı,
+bitişe <80m + %70 ilerlemede vurgulu 🏁 Bitir → route_completions upsert) ve **kayıt** (/kayit —
+watchPosition izi ≥8m filtreli toplar, ⏹ Durdur → simplify(≤150 nokta) → sessionStorage
+"rwi_recorded_track" → /rotalar/yeni?kayit=1; RouteForm mount'ta okuyup çizim moduna yükler).
+Wake Lock ekranı uyanık tutar (visibilitychange'de yeniden alınır). Web sınırı: ekran açık kalmalı;
+arka plan kaydı YOK (bilinçli). Giriş: rota detayı "▶ Sürüşü başlat" (.btn-ride), rotalar sayfası
+"⏺ Rota kaydet". Faz 2 (saha testi sonrası): duraklat/devam, hız, sapma hassasiyeti ayarı.
+
 ## Tasarım kimliği
 Zemin #0C1512, amber #F2B14C, spruce #5FB8A3. Fontlar: Archivo / Hanken Grotesk / Space Mono.
 Kart dili: küçük kare ikon butonlar, pill chip'ler, ince --line kenarlıklar; tehlikeli eylemler sessiz

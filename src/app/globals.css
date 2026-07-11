@@ -826,3 +826,35 @@ button.card-like:disabled { opacity: .7; }
 /* il linki (rota detayinda) */
 .prov-link { color: inherit; border-bottom: 1px dotted var(--ink-faint); transition: .15s; }
 .prov-link:hover { color: var(--amber); border-color: var(--amber); }
+
+/* ==== Surus Modu ==== */
+.ride-page { padding: 0; }
+.ride-wrap { position: fixed; inset: 64px 0 0 0; z-index: 40; background: var(--bg); }
+.ride-map { position: absolute; inset: 0; }
+.ride-top { position: absolute; top: 14px; left: 14px; right: 14px; z-index: 5;
+  background: rgba(12,21,18,.88); border: 1px solid var(--line); border-radius: 16px;
+  padding: 12px 16px; backdrop-filter: blur(8px); }
+.ride-title { font-weight: 800; font-size: 15px; }
+.ride-stats { display: flex; gap: 18px; margin-top: 6px; font-size: 13px; color: var(--ink-dim); }
+.ride-stats b { color: var(--amber); font-size: 17px; }
+.ride-controls { position: absolute; left: 14px; right: 14px; bottom: 22px; z-index: 5;
+  display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.ride-big { width: 100%; max-width: 420px; justify-content: center; padding: 16px 20px;
+  font-size: 16px; font-weight: 800; border-radius: 16px; }
+.ride-note { font-size: 12px; color: var(--ink-faint); background: rgba(12,21,18,.75);
+  padding: 4px 12px; border-radius: 999px; }
+.ride-offroute { position: absolute; top: 96px; left: 50%; transform: translateX(-50%); z-index: 6;
+  background: rgba(214,116,73,.95); color: #fff; font-weight: 700; font-size: 13.5px;
+  padding: 8px 18px; border-radius: 999px; }
+.ride-dot { width: 18px; height: 18px; border-radius: 50%; background: #4da3ff;
+  border: 3px solid #fff; box-shadow: 0 0 0 8px rgba(77,163,255,.25); }
+.ride-finish { position: absolute; inset: 0; z-index: 10; display: grid; place-items: center;
+  background: rgba(12,21,18,.9); }
+.ride-finish-card { text-align: center; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 22px; padding: 40px 48px; max-width: 90vw; }
+.ride-finish-card h2 { margin: 10px 0 6px; }
+.ride-finish-card p { color: var(--ink-dim); margin-bottom: 22px; }
+.ride-fallback { padding: 80px 20px; text-align: center; color: var(--ink-dim); }
+.btn-ride { border: 1.5px solid rgba(242,177,76,.6); color: var(--amber);
+  background: rgba(242,177,76,.10); font-weight: 700; }
+.btn-ride:hover { background: rgba(242,177,76,.2); transform: translateY(-1px); }

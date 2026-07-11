@@ -43,6 +43,22 @@ export function RouteForm({ lang = "tr" }: { lang?: Lang } = {}) {
   const [photoError, setPhotoError] = useState<string>("");
   const [parseError, setParseError] = useState<string>("");
   const [submitError, setSubmitError] = useState<string>("");
+
+  // Sürüş Modu kaydından gelen iz varsa çizim moduna hazır getir.
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("rwi_recorded_track");
+      if (!raw) return;
+      sessionStorage.removeItem("rwi_recorded_track");
+      const parsed = JSON.parse(raw) as { points?: [number, number][] };
+      if (parsed.points && parsed.points.length >= 2) {
+        setMode("draw");
+        setDrawn(parsed.points);
+      }
+    } catch {
+      /* bozuk veri — sessizce yok say */
+    }
+  }, []);
   const [saving, setSaving] = useState(false);
 
   const mapEl = useRef<HTMLDivElement>(null);

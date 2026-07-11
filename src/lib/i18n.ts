@@ -221,6 +221,8 @@ const STR = {
   riders_completed: ["kişi tamamladı", "riders completed"],
   stat_completed: ["Tamamlanan", "Completed"],
   stat_ridden: ["Sürülen km", "Km ridden"],
+  start_ride: ["▶ Sürüşü başlat", "▶ Start ride"],
+  record_route: ["⏺ Rota kaydet", "⏺ Record a route"],
 } as const;
 
 export type StrKey = keyof typeof STR;
