@@ -10,6 +10,7 @@ import { DIFFICULTY, km, formatDuration } from "@/lib/types";
 import { RouteTypeIcon, PinIcon } from "@/components/home/icons";
 import { createClient } from "@/lib/supabase/client";
 import { t, diffName, type Lang } from "@/lib/i18n";
+import { shareCampStory } from "./camp-story";
 
 type CampSpot = { id: string; name: string; lng: number; lat: number; description: string | null };
 
@@ -258,9 +259,15 @@ export function MapExplorer({ routes, lang = "tr" }: { routes: MapRoute[]; lang?
           .setLngLat([Number(pr.lng), Number(pr.lat)])
           .setHTML(
             `<div class="pop"><h4>⛺ ${pr.name}</h4>${descLine ? `<div class="ploc">${descLine}</div>` : ""}
-            <div class="pop-actions"><a href="${nav}" target="_blank" rel="noopener noreferrer">${t(lang, "nav_word")} ⌖</a></div></div>`,
+            <div class="pop-actions"><a href="${nav}" target="_blank" rel="noopener noreferrer">${t(lang, "nav_word")} ⌖</a><button type="button" class="camp-story-btn">${t(lang, "story_card")}</button></div></div>`,
           )
           .addTo(map);
+        popupRef.current
+          .getElement()
+          ?.querySelector(".camp-story-btn")
+          ?.addEventListener("click", () => {
+            shareCampStory({ name: String(pr.name ?? ""), desc: descLine || undefined, lang });
+          });
       });
       map.on("mouseenter", "camps-pts", () => (map.getCanvas().style.cursor = "pointer"));
       map.on("mouseleave", "camps-pts", () => (map.getCanvas().style.cursor = ""));
