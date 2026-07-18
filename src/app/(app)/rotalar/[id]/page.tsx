@@ -235,6 +235,12 @@ export default async function RouteDetailPage({
           <Link className="btn btn-sm btn-ride" href={`/surus/${route.id}`}>
             {tr(lang, "start_ride")}
           </Link>
+          {!user && (
+            <div className="join-nudge">
+              <span>{tr(lang, "join_nudge")}</span>
+              <Link className="btn btn-primary btn-sm" href={`/signup`}>{tr(lang, "join")}</Link>
+            </div>
+          )}
         </div>
 
         <div className="readout">
@@ -284,9 +290,14 @@ export default async function RouteDetailPage({
             coords={coords as [number, number][]}
             photoUrl={route.thumbnail_url}
           />
-          {route.gpx_url && (
+          {route.gpx_url && user && (
             <a className="gpx-download" href={route.gpx_url} download>
               {tr(lang, "gpx_dl")}
+            </a>
+          )}
+          {route.gpx_url && !user && (
+            <a className="gpx-download gpx-locked" href={`/login?next=/rotalar/${route.id}`}>
+              {tr(lang, "gpx_dl")} <span className="gpx-hint">🔒 {tr(lang, "gpx_join_hint")}</span>
             </a>
           )}
           {(isOwner || isAdmin) && (

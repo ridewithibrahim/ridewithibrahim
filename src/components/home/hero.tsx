@@ -19,7 +19,7 @@ export function Hero({ stats, route, lang = "tr" }: { stats?: SiteStats; route?:
 
   const items = [
     { num: (stats?.routes ?? 0).toLocaleString("tr-TR"), lbl: t(lang, "stat_routes") },
-    { num: (stats?.riders ?? 0).toLocaleString("tr-TR"), lbl: t(lang, "stat_riders") },
+    { num: "500+", lbl: t(lang, "stat_camps") },
     { num: (stats?.totalKm ?? 0).toLocaleString("tr-TR"), lbl: t(lang, "stat_km") },
     { num: (stats?.events ?? 0).toLocaleString("tr-TR"), lbl: t(lang, "stat_meetups") },
   ];

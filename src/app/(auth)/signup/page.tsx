@@ -12,6 +12,12 @@ export default async function SignupPage() {
       <h1 className="auth-title">{t(lang, "signup_title")}</h1>
       <p className="auth-sub">{t(lang, "signup_sub")}</p>
 
+      <ul className="auth-perks">
+        <li>{t(lang, "su_b1")}</li>
+        <li>{t(lang, "su_b2")}</li>
+        <li>{t(lang, "su_b3")}</li>
+      </ul>
+
       <AuthForm action={signup} mode="signup" lang={lang} />
 
       <p className="auth-switch">

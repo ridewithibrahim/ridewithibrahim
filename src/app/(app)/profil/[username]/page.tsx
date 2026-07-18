@@ -35,6 +35,7 @@ export default async function ProfilePage({
 }) {
   const { username } = await params;
   const lang = await getLang();
+  const FOUNDER_CUTOFF = new Date("2026-09-01T00:00:00Z");
   const supabase = await createClient();
 
   const { data: profileRow } = await supabase
@@ -96,6 +97,11 @@ export default async function ProfilePage({
           )}
           <div className="pf-id">
             <h1>@{username}</h1>
+            {profile.created_at && new Date(profile.created_at) < FOUNDER_CUTOFF && (
+              <span className="rank-chip founder-chip" title={lang === "en" ? "Joined in the founding era" : "Kuruluş döneminde katıldı"}>
+                {t(lang, "founder")}
+              </span>
+            )}
             <span className="rank-chip" title={`${totalRoutes} rota · ${Math.round(totalKm)} km`}>
               {rank.emoji} {rankName(rank, lang)}
             </span>

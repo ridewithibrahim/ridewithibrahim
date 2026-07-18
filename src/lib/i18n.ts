@@ -225,6 +225,16 @@ const STR = {
   record_route: ["Rota kaydet", "Record a route"],
   record_ride_opt: ["Sürüşünü kaydet (GPS)", "Record your ride (GPS)"],
   admin_panel: ["Denetim", "Admin"],
+  stat_camps: ["Kamp noktası", "Camp spots"],
+  founder: ["🏛 Kurucu Üye", "🏛 Founding Member"],
+  join_nudge: [
+    "Kaydet, tamamla, GPX indir — üyelik 30 saniye.",
+    "Save routes, complete rides, download GPX — joining takes 30 seconds.",
+  ],
+  gpx_join_hint: ["GPX indirmek için üye ol — 30 saniye", "Join to download the GPX — 30 seconds"],
+  su_b1: ["Rotaları kaydet, tamamla, GPX indir", "Save routes, complete rides, download GPX"],
+  su_b2: ["Kendi rotanı çiz ya da sürüşünü kaydet", "Draw your own route or record your ride"],
+  su_b3: ["Buluşmalara katıl, rozet topla", "Join meetups, collect badges"],
 } as const;
 
 export type StrKey = keyof typeof STR;
